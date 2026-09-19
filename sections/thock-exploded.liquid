@@ -1,0 +1,152 @@
+{{ 'thock-exploded.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'thock-exploded.js' | asset_url }}" defer="defer"></script>
+
+{%- comment -%}
+  The stylesheet defaults to the tall sticky layout, because collapsing by
+  default and growing once the model loads would shift the page by 230vh.
+  <noscript> is the only way to express "scripts never ran" in CSS, so the
+  scriptless collapse lives here rather than in the stylesheet.
+{%- endcomment -%}
+<noscript>
+  <style>
+    .thock-exploded { height: auto; }
+    .thock-exploded__sticky {
+      position: static;
+      height: auto;
+      padding-block: var(--sp-section);
+    }
+    .thock-exploded__stage { display: none; }
+    .thock-exploded__layer,
+    .thock-exploded__layer-text { opacity: 1; }
+    .thock-exploded__layer-text { grid-template-rows: 1fr; }
+    .thock-exploded__layer-text > span { padding-top: 0.35rem; }
+  </style>
+</noscript>
+
+<section
+  class="thock thock-exploded"
+  data-thock-exploded
+  data-three-url="{{ 'three.module.min.js' | asset_url }}"
+  data-keyboard-url="{{ 'thock-keyboard-3d.js' | asset_url }}"
+  data-gltf-loader-url="{{ 'gltf-loader.js' | asset_url }}"
+  data-model-url="{{ 'thock-keyboard.glb' | asset_url }}"
+  style="--scroll-length: {{ section.settings.scroll_length }};"
+>
+  <div class="thock-exploded__sticky">
+    <div class="thock-exploded__stage">
+      <canvas class="thock-exploded__canvas" data-thock-exploded-canvas aria-hidden="true"></canvas>
+    </div>
+
+    <div class="thock__shell thock-exploded__layout">
+      <div class="thock-exploded__copy">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="thock__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        <h2 class="thock__display">{{ section.settings.heading | escape }}</h2>
+      </div>
+
+      {%- comment -%}
+        An ordered list, not decorative divs. With JavaScript off or WebGL
+        unavailable this is still a readable, correctly-ordered description of
+        how the board is built — which is the actual content of this section.
+        The 3D is an illustration of it.
+      {%- endcomment -%}
+      <ol class="thock-exploded__layers" data-thock-layer-list>
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'layer' -%}
+            <li
+              class="thock-exploded__layer"
+              data-layer-key="{{ block.settings.layer_key }}"
+              {{ block.shopify_attributes }}
+            >
+              <span class="thock-exploded__layer-index thock__fine">
+                {{- forloop.index | prepend: '0' | slice: -2, 2 -}}
+              </span>
+              <div class="thock-exploded__layer-body">
+                <h3 class="thock-exploded__layer-name">{{ block.settings.title | escape }}</h3>
+                {%- if block.settings.description != blank -%}
+                  {%- comment -%}
+                    The span is load-bearing: the collapse animates
+                    grid-template-rows, which needs a real child to clip.
+                    A bare text node becomes an anonymous grid item that CSS
+                    can't give overflow:hidden to.
+                  {%- endcomment -%}
+                  <p class="thock-exploded__layer-text"><span>{{ block.settings.description | escape }}</span></p>
+                {%- endif -%}
+              </div>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ol>
+    </div>
+
+    {%- if section.settings.show_hint -%}
+      <p class="thock__fine thock-exploded__hint" aria-hidden="true">
+        {{- section.settings.hint | escape -}}
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "THOCK · Exploded build",
+  "tag": "section",
+  "class": "thock-exploded-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Six layers" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Everything that makes it sound like that" },
+    {
+      "type": "range",
+      "id": "scroll_length",
+      "label": "Scroll length",
+      "min": 200,
+      "max": 500,
+      "step": 50,
+      "unit": "%",
+      "default": 350,
+      "info": "How far the page scrolls while the board comes apart. Higher is slower."
+    },
+    { "type": "checkbox", "id": "show_hint", "label": "Show scroll hint", "default": true },
+    { "type": "text", "id": "hint", "label": "Scroll hint", "default": "Keep scrolling" }
+  ],
+  "blocks": [
+    {
+      "type": "layer",
+      "name": "Layer",
+      "settings": [
+        {
+          "type": "select",
+          "id": "layer_key",
+          "label": "Which part",
+          "options": [
+            { "value": "keycaps", "label": "Keycaps" },
+            { "value": "switches", "label": "Switches" },
+            { "value": "plate", "label": "Plate" },
+            { "value": "foam", "label": "Foam" },
+            { "value": "pcb", "label": "PCB" },
+            { "value": "case", "label": "Case" }
+          ],
+          "default": "keycaps",
+          "info": "Links this text to a layer of the 3D model. Keep the blocks in top-to-bottom order."
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Keycaps" },
+        { "type": "textarea", "id": "description", "label": "Description" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "THOCK · Exploded build",
+      "blocks": [
+        { "type": "layer", "settings": { "layer_key": "keycaps", "title": "Cherry-profile PBT", "description": "Doubleshot legends, 1.4mm walls. Thicker than the ABS most boards ship with, which is half of why it lands the way it does." } },
+        { "type": "layer", "settings": { "layer_key": "switches", "title": "Factory-lubed switches", "description": "Hot-swap sockets, so you can change your mind without a soldering iron. Three weights, all tuned to the same case." } },
+        { "type": "layer", "settings": { "layer_key": "plate", "title": "Polycarbonate plate", "description": "Softer than aluminium and deliberately so. It flexes a fraction on every press and takes the sharp edge off the top end." } },
+        { "type": "layer", "settings": { "layer_key": "foam", "title": "Five layers of foam", "description": "Poron between plate and PCB, PE under the switches, and a case-bottom layer that kills the hollow ring most cases have." } },
+        { "type": "layer", "settings": { "layer_key": "pcb", "title": "Flex-cut PCB", "description": "Relief slots milled between every switch. The board gives slightly under the finger instead of resisting it." } },
+        { "type": "layer", "settings": { "layer_key": "case", "title": "One billet of 6063", "description": "Machined, not cast. Gasket-mounted on poron strips so the whole assembly floats instead of bolting rigid to the shell." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

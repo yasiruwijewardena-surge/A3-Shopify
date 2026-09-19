@@ -414,6 +414,145 @@ function adaptModel(THREE, scene) {
   };
 }
 
+/* ==========================================================================
+ * Exploded build stack
+ *
+ * The baked model supplies the three layers that are genuinely modelled —
+ * keycaps, switches, case. The plate, foam and PCB between them are generated
+ * slabs: they're flat rectangles in real life, so generated geometry is
+ * indistinguishable from modelled geometry there, and it saves needing a
+ * differently-built source model.
+ * ========================================================================== */
+
+/** Order matters: index drives the separation stagger, top of the board first. */
+const STACK = [
+  { key: 'keycaps', materials: ['cap_base', 'cap_mod', 'cap_accent'], lift: 3.4 },
+  { key: 'switches', materials: ['switches'], lift: 2.3 },
+  { key: 'plate', generated: true, thickness: 0.09, color: 0x9aa3ab, metalness: 0.85, roughness: 0.35, lift: 1.5 },
+  { key: 'foam', generated: true, thickness: 0.14, color: 0x2b2118, metalness: 0.0, roughness: 0.95, lift: 0.85 },
+  { key: 'pcb', generated: true, thickness: 0.07, color: 0x14432c, metalness: 0.25, roughness: 0.6, lift: 0.3 },
+  { key: 'case', materials: ['case'], lift: -0.6 },
+];
+
+export function loadExplodedStack(THREE, GLTFLoader, url) {
+  return new Promise((resolve) => {
+    new GLTFLoader().load(
+      url,
+      (gltf) => {
+        try {
+          resolve(buildStack(THREE, gltf.scene));
+        } catch (err) {
+          console.warn('[THOCK] exploded stack could not be built', err);
+          resolve(null);
+        }
+      },
+      undefined,
+      (err) => {
+        console.warn('[THOCK] exploded stack model failed to load', err);
+        resolve(null);
+      }
+    );
+  });
+}
+
+function buildStack(THREE, scene) {
+  const byMaterial = {};
+  scene.traverse((node) => {
+    if (node.isMesh && node.material && node.material.name) {
+      (byMaterial[node.material.name] = byMaterial[node.material.name] || []).push(node);
+    }
+  });
+
+  if (!byMaterial.case || !byMaterial.cap_base) {
+    throw new Error('model is missing the case / cap_base materials');
+  }
+
+  const root = new THREE.Group();
+  root.add(scene);
+
+  const whole = new THREE.Box3().setFromObject(scene);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  whole.getSize(size);
+  whole.getCenter(center);
+  scene.position.y -= center.y;
+
+  // Where the generated slabs live: stacked below the switches, inside the
+  // case, so they're hidden when assembled and emerge as it separates.
+  const caseBox = boxOf(THREE, byMaterial.case);
+  const switchBox = byMaterial.switches ? boxOf(THREE, byMaterial.switches) : caseBox;
+  let slabY = switchBox.min.y - center.y - 0.08;
+
+  const layers = [];
+
+  STACK.forEach((spec, index) => {
+    let group;
+
+    if (spec.generated) {
+      group = new THREE.Group();
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(size.x * 0.93, spec.thickness, size.z * 0.88),
+        new THREE.MeshStandardMaterial({
+          color: spec.color,
+          metalness: spec.metalness,
+          roughness: spec.roughness,
+        })
+      );
+      mesh.position.y = slabY;
+      slabY -= spec.thickness + 0.05;
+      group.add(mesh);
+      root.add(group);
+    } else {
+      // Reparent the model's own meshes so each layer can be moved on its own.
+      group = new THREE.Group();
+      spec.materials.forEach((name) => {
+        (byMaterial[name] || []).forEach((mesh) => group.attach(mesh));
+      });
+      if (!group.children.length) return;
+      root.add(group);
+    }
+
+    layers.push({ key: spec.key, index, group, lift: spec.lift, restY: group.position.y });
+  });
+
+  root.rotation.x = 0.06;
+
+  return {
+    root,
+    layers,
+    size: { width: size.x, depth: size.z, height: size.y },
+
+    /**
+     * `progress` 0..1 drives the whole stack. Each layer gets a staggered
+     * window so they peel apart in order rather than all at once, which is
+     * what makes it read as disassembly rather than a scale transform.
+     */
+    setProgress(progress, smoothstep) {
+      const count = layers.length;
+      layers.forEach((layer) => {
+        const start = (layer.index / count) * 0.55;
+        const t = smoothstep(start, start + 0.45, progress);
+        layer.group.position.y = layer.restY + layer.lift * t;
+        layer.t = t;
+      });
+    },
+
+    dispose() {
+      root.traverse((node) => {
+        if (!node.isMesh) return;
+        node.geometry.dispose();
+        if (node.material) node.material.dispose();
+      });
+    },
+  };
+}
+
+function boxOf(THREE, meshes) {
+  const box = new THREE.Box3();
+  meshes.forEach((mesh) => box.expandByObject(mesh));
+  return box;
+}
+
 /**
  * Studio lighting without three.js `examples/` — we only vendored the core
  * build, so RoomEnvironment isn't available. A painted equirect gradient run

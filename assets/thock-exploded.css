@@ -1,0 +1,274 @@
+/* ==========================================================================
+   THOCK — exploded build stack
+   ========================================================================== */
+
+.thock-exploded {
+  position: relative;
+  /* Scroll length is the section's height beyond one viewport. The sticky
+     child consumes that overflow as the animation's timeline. */
+  height: calc(var(--scroll-length, 350) * 1vh);
+  background: var(--t-void);
+}
+
+.thock-exploded__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.thock-exploded__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.thock-exploded__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Vignette so the layer text never sits on a busy part of the render. */
+.thock-exploded__sticky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(8, 9, 10, 0.92) 0%, rgba(8, 9, 10, 0.5) 34%, transparent 58%);
+}
+
+.thock-exploded__layout {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 27rem) 1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+  width: 100%;
+}
+
+.thock-exploded__copy {
+  grid-column: 1;
+}
+
+.thock-exploded__copy .thock__display {
+  font-size: clamp(2rem, 3.4vw, 3.25rem);
+}
+
+/* --------------------------------------------------------------------------
+   Layer list
+   -------------------------------------------------------------------------- */
+
+.thock-exploded__layers {
+  grid-column: 1;
+  list-style: none;
+  margin: clamp(1.75rem, 3vw, 2.75rem) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.thock-exploded__layer {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--t-line-soft);
+  /* Inactive layers stay legible rather than disappearing — this list is the
+     section's content, not a progress indicator. */
+  opacity: 0.4;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.thock-exploded__layer:last-child {
+  border-bottom: 1px solid var(--t-line-soft);
+}
+
+.thock-exploded__layer.is-active {
+  opacity: 1;
+}
+
+.thock-exploded__layer-index {
+  padding-top: 0.2rem;
+  color: var(--t-faint);
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+.thock-exploded__layer.is-active .thock-exploded__layer-index {
+  color: var(--t-ember);
+}
+
+.thock-exploded__layer-body {
+  min-width: 0;
+}
+
+.thock-exploded__layer-name {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.thock-exploded__layer-text {
+  font-size: var(--fs-fine);
+  line-height: 1.5;
+  color: var(--t-mute);
+  max-width: 34ch;
+  /* Collapsed until active, so six descriptions don't overflow the viewport.
+     Margin lives on the inner span, not here — a margin on the collapsed
+     element still occupies space and the list would jitter as layers open. */
+  margin: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out);
+}
+
+.thock-exploded__layer-text > span {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.thock-exploded__layer.is-active .thock-exploded__layer-text {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.thock-exploded__layer.is-active .thock-exploded__layer-text > span {
+  padding-top: 0.35rem;
+}
+
+.thock-exploded__hint {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  opacity: 0.6;
+}
+
+/* --------------------------------------------------------------------------
+   No WebGL / reduced motion
+
+   The tall sticky layout is the DEFAULT, and these states collapse it. The
+   inverse — defaulting to collapsed and growing once JS activates — would
+   shift the page by 230vh the moment the model finished loading.
+
+   The no-JS case is handled by a <noscript> block in the section, which is the
+   only way to express "scripts never ran" in CSS.
+   -------------------------------------------------------------------------- */
+
+.thock-exploded[data-render3d='declined'],
+.thock-exploded[data-render3d='failed'],
+.thock-exploded[data-render3d='reduced'] {
+  height: auto;
+}
+
+.thock-exploded[data-render3d='declined'] .thock-exploded__sticky,
+.thock-exploded[data-render3d='failed'] .thock-exploded__sticky,
+.thock-exploded[data-render3d='reduced'] .thock-exploded__sticky {
+  position: static;
+  height: auto;
+  padding-block: var(--sp-section);
+}
+
+.thock-exploded[data-render3d='declined'] .thock-exploded__stage,
+.thock-exploded[data-render3d='failed'] .thock-exploded__stage,
+.thock-exploded[data-render3d='reduced'] .thock-exploded__stage {
+  display: none;
+}
+
+/* The list is the content, so without the render it becomes a plain, fully
+   legible spec list rather than a half-faded progress indicator. */
+.thock-exploded[data-render3d='declined'] .thock-exploded__layer,
+.thock-exploded[data-render3d='failed'] .thock-exploded__layer,
+.thock-exploded[data-render3d='reduced'] .thock-exploded__layer,
+.thock-exploded[data-render3d='declined'] .thock-exploded__layer-text,
+.thock-exploded[data-render3d='failed'] .thock-exploded__layer-text,
+.thock-exploded[data-render3d='reduced'] .thock-exploded__layer-text {
+  opacity: 1;
+}
+
+.thock-exploded[data-render3d='declined'] .thock-exploded__layer-text,
+.thock-exploded[data-render3d='failed'] .thock-exploded__layer-text,
+.thock-exploded[data-render3d='reduced'] .thock-exploded__layer-text {
+  grid-template-rows: 1fr;
+}
+
+.thock-exploded[data-render3d='declined'] .thock-exploded__layer-text > span,
+.thock-exploded[data-render3d='failed'] .thock-exploded__layer-text > span,
+.thock-exploded[data-render3d='reduced'] .thock-exploded__layer-text > span {
+  padding-top: 0.35rem;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 989px) {
+  .thock-exploded__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .thock-exploded__sticky::before {
+    background: linear-gradient(180deg, rgba(8, 9, 10, 0.9) 0%, rgba(8, 9, 10, 0.55) 45%, transparent 100%);
+  }
+
+  .thock-exploded__layer-text {
+    max-width: none;
+  }
+}
+
+@media (max-width: 749px) {
+  .thock-exploded__sticky {
+    align-items: flex-start;
+    padding-top: clamp(2rem, 8vw, 4rem);
+  }
+
+  .thock-exploded__stage {
+    inset: auto 0 0 0;
+    height: 45%;
+  }
+
+  .thock-exploded__layer {
+    padding: 0.7rem 0;
+  }
+
+  .thock-exploded__hint {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — the stack renders fully separated and simply doesn't move.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .thock-exploded {
+    height: auto;
+  }
+
+  .thock-exploded__sticky {
+    position: static;
+    height: auto;
+    min-height: 70vh;
+    padding-block: var(--sp-section);
+  }
+
+  .thock-exploded__layer,
+  .thock-exploded__layer-text {
+    opacity: 1;
+  }
+
+  .thock-exploded__layer-text {
+    grid-template-rows: 1fr;
+  }
+}

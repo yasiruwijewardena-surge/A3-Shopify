@@ -244,15 +244,19 @@ def classify(components, report=False):
     # Triangle count separates a moulded keycap from a switch stem. Footprint
     # can't: stems and caps overlap heavily in width, which is what made the
     # median footprint a useless estimate of 1u.
-    caps, case = [], []
+    caps, switches, case = [], [], []
     for c in components:
         is_high = c['ymax'] > cap_height
         is_cap_shaped = c['d'] < max_cap_depth and c['w'] < max_cap_width
         if is_high and is_cap_shaped and len(c['tris']) >= MIN_KEYCAP_TRIS:
             caps.append(c)
+        elif is_high and is_cap_shaped:
+            # High, compact, but far too sparse to be a moulded cap: these are
+            # the switch stems and housings visible in the gaps. Their own
+            # group, so the exploded view can lift them off the plate as a
+            # distinct layer rather than having them glued to the case.
+            switches.append(c)
         else:
-            # Switch housings and stems go with the case; they read as dark
-            # hardware in the gaps between caps, which is what they are.
             case.append(c)
 
     unit = estimate_key_unit(caps)
@@ -315,6 +319,7 @@ def classify(components, report=False):
         print(f'  accent (Esc) at  : {acc}')
         print(f'  alpha caps       : {len(alpha)}')
         print(f'  modifier caps    : {len(modifier)}')
+        print(f'  switch parts     : {len(switches)}')
         print(f'  case components  : {len(case)}')
 
     def tris_of(items):
@@ -322,6 +327,7 @@ def classify(components, report=False):
 
     return {
         'case': tris_of(case),
+        'switches': tris_of(switches),
         'cap_base': tris_of(alpha),
         'cap_mod': tris_of(modifier),
         'cap_accent': tris_of([accent]) if accent else [],
@@ -346,6 +352,7 @@ def estimate_key_unit(caps):
 
 MATERIALS = [
     ('case', [0.11, 0.12, 0.13, 1.0], 0.9, 0.3),
+    ('switches', [0.05, 0.05, 0.06, 1.0], 0.2, 0.7),
     ('cap_base', [0.16, 0.18, 0.20, 1.0], 0.0, 0.62),
     ('cap_mod', [0.96, 0.95, 0.93, 1.0], 0.0, 0.62),
     ('cap_accent', [1.0, 0.35, 0.12, 1.0], 0.0, 0.55),

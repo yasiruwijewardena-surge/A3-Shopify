@@ -91,9 +91,78 @@
         "scroll_cue_label": "Scroll to take it apart",
         "use_model": true
       }
+    },
+    "exploded": {
+      "type": "thock-exploded",
+      "blocks": {
+        "layer_keycaps": {
+          "type": "layer",
+          "settings": {
+            "layer_key": "keycaps",
+            "title": "Cherry-profile PBT",
+            "description": "Doubleshot legends, 1.4mm walls. Thicker than the ABS most boards ship with, which is half of why it lands the way it does."
+          }
+        },
+        "layer_switches": {
+          "type": "layer",
+          "settings": {
+            "layer_key": "switches",
+            "title": "Factory-lubed switches",
+            "description": "Hot-swap sockets, so you can change your mind without a soldering iron. Three weights, all tuned to the same case."
+          }
+        },
+        "layer_plate": {
+          "type": "layer",
+          "settings": {
+            "layer_key": "plate",
+            "title": "Polycarbonate plate",
+            "description": "Softer than aluminium and deliberately so. It flexes a fraction on every press and takes the sharp edge off the top end."
+          }
+        },
+        "layer_foam": {
+          "type": "layer",
+          "settings": {
+            "layer_key": "foam",
+            "title": "Five layers of foam",
+            "description": "Poron between plate and PCB, PE under the switches, and a case-bottom layer that kills the hollow ring most cases have."
+          }
+        },
+        "layer_pcb": {
+          "type": "layer",
+          "settings": {
+            "layer_key": "pcb",
+            "title": "Flex-cut PCB",
+            "description": "Relief slots milled between every switch. The board gives slightly under the finger instead of resisting it."
+          }
+        },
+        "layer_case": {
+          "type": "layer",
+          "settings": {
+            "layer_key": "case",
+            "title": "One billet of 6063",
+            "description": "Machined, not cast. Gasket-mounted on poron strips so the whole assembly floats instead of bolting rigid to the shell."
+          }
+        }
+      },
+      "block_order": [
+        "layer_keycaps",
+        "layer_switches",
+        "layer_plate",
+        "layer_foam",
+        "layer_pcb",
+        "layer_case"
+      ],
+      "settings": {
+        "eyebrow": "Six layers",
+        "heading": "Everything that makes it sound like that",
+        "scroll_length": 350,
+        "show_hint": true,
+        "hint": "Keep scrolling"
+      }
     }
   },
   "order": [
-    "hero"
+    "hero",
+    "exploded"
   ]
 }
