@@ -15,6 +15,10 @@
   data-section-id="{{ section.id }}"
   data-three-url="{{ 'three.module.min.js' | asset_url }}"
   data-keyboard-url="{{ 'thock-keyboard-3d.js' | asset_url }}"
+  {%- if section.settings.use_model %}
+    data-gltf-loader-url="{{ 'gltf-loader.js' | asset_url }}"
+    data-model-url="{{ 'thock-keyboard.glb' | asset_url }}"
+  {%- endif %}
   data-quality="{{ section.settings.quality }}"
   {%- comment -%} Unitless so the stylesheet can pick vh vs svh. {%- endcomment -%}
   style="--hero-min-height: {{ section.settings.min_height }};"
@@ -293,6 +297,13 @@
       "step": 5,
       "unit": "vh",
       "default": 100
+    },
+    {
+      "type": "checkbox",
+      "id": "use_model",
+      "label": "Use the detailed 3D model",
+      "default": true,
+      "info": "Off falls back to the lighter generated board, which loads instantly and has no model to download."
     },
     {
       "type": "select",

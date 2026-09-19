@@ -244,10 +244,41 @@
   function boot(root, canvas, fallback, data, commerce) {
     var threeUrl = root.dataset.threeUrl;
     var kbUrl = root.dataset.keyboardUrl;
+    var loaderUrl = root.dataset.gltfLoaderUrl;
+    var modelUrl = root.dataset.modelUrl;
 
     Promise.all([import(threeUrl), import(kbUrl)])
       .then(function (mods) {
-        run(mods[0], mods[1], root, canvas, fallback, data, commerce);
+        var THREE = mods[0];
+        var KB = mods[1];
+
+        // No model configured — go straight to the procedural board rather
+        // than paying for a loader we won't use.
+        if (!modelUrl || !loaderUrl) return { THREE: THREE, KB: KB, board: null };
+
+        return import(loaderUrl)
+          .then(function (loaderMod) {
+            return KB.loadKeyboardModel(THREE, loaderMod.GLTFLoader, modelUrl);
+          })
+          .catch(function (err) {
+            console.warn('[THOCK] GLTFLoader unavailable', err);
+            return null;
+          })
+          .then(function (board) {
+            return { THREE: THREE, KB: KB, board: board };
+          });
+      })
+      .then(function (ctx) {
+        var board = ctx.board;
+        if (board) {
+          root.dataset.boardSource = 'model';
+        } else {
+          // The procedural board is the safety net: a missing or malformed
+          // .glb degrades to a working keyboard, not an empty hero.
+          board = ctx.KB.createKeyboard(ctx.THREE, {});
+          root.dataset.boardSource = 'procedural';
+        }
+        run(ctx.THREE, ctx.KB, board, root, canvas, fallback, data, commerce);
       })
       .catch(function (err) {
         // Network blocked, CSP, ancient browser — the DOM hero still works.
@@ -256,7 +287,7 @@
       });
   }
 
-  function run(THREE, KB, root, canvas, fallback, data, commerce) {
+  function run(THREE, KB, board, root, canvas, fallback, data, commerce) {
     var reduced = M.prefersReducedMotion ? M.prefersReducedMotion() : false;
     var lowPower = root.dataset.quality === 'low' || (navigator.deviceMemory && navigator.deviceMemory < 8);
 
@@ -276,9 +307,11 @@
 
     var camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
 
-    var board = KB.createKeyboard(THREE, { quality: lowPower ? 'low' : 'high' });
     scene.add(board.root);
-    scene.add(KB.createContactShadow(THREE, board.size.width, board.size.depth));
+
+    var shadow = KB.createContactShadow(THREE, board.size.width, board.size.depth);
+    shadow.position.y = -(board.size.height || 2) / 2 - 0.12;
+    scene.add(shadow);
 
     // Environment does most of the work; one directional light adds the
     // specular streak across the case that sells "machined aluminium".
@@ -323,6 +356,11 @@
       // the lower third clear for the headline and the configurator panel.
       camera.lookAt(0, -dist * (portrait ? 0.06 : 0.16), 0);
       camera.updateProjectionMatrix();
+
+      // setSize clears the drawing buffer. If the loop happens to be paused —
+      // scrolled past, background tab — nothing would repaint it and the hero
+      // would be left blank. Repaint immediately instead of relying on a frame.
+      if (!destroyed) renderer.render(scene, camera);
     }
 
     var resizeObserver = new ResizeObserver(resize);
@@ -375,7 +413,9 @@
     var visible = true;
     var running = true;
     var scheduled = false;
-    var keysSettled = reduced;
+    // The baked model merges its caps into four primitives, so it has no
+    // per-key meshes to stagger. Only the procedural board does.
+    var keysSettled = reduced || !board.keys.length;
     var lastTime = performance.now();
 
     // Single entry point for scheduling. Without the `scheduled` guard, the
@@ -451,20 +491,35 @@
 
     /* --- Teardown ------------------------------------------------------ */
 
+    var destroyed = false;
+
     function destroy() {
+      if (destroyed) return;
+      destroyed = true;
       running = false;
       resizeObserver.disconnect();
       visibilityObserver.disconnect();
+      document.removeEventListener('shopify:section:unload', onSectionUnload);
+      document.removeEventListener('visibilitychange', schedule);
       board.dispose();
       renderer.dispose();
+
+      // Release the bind flag. The theme editor and the CLI's hot reload both
+      // swap a section's inner HTML while keeping the outer element, so the
+      // element that comes back still carries the flag. Without clearing it,
+      // init() bails out, nothing restarts the render loop, and the canvas
+      // goes blank at the next resize that clears the drawing buffer.
+      delete root.dataset.thockHeroBound;
+    }
+
+    function onSectionUnload(event) {
+      if (event.target.contains(root)) destroy();
     }
 
     // The theme editor tears sections down and rebuilds them; without this
     // every settings tweak leaks a WebGL context and Chrome kills the page
     // after about sixteen of them.
-    document.addEventListener('shopify:section:unload', function (event) {
-      if (event.target.contains(root)) destroy();
-    });
+    document.addEventListener('shopify:section:unload', onSectionUnload);
   }
 
   function easeOutCubic(t) {

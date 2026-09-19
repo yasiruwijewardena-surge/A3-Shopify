@@ -69,12 +69,43 @@ to swatches, so they must match.
 | `assets/thock-hero.css` | Hero styles, including the no-WebGL fallback board |
 | `assets/thock-hero.js` | Variant ↔ 3D binding, lazy WebGL boot, render loop |
 | `assets/thock-keyboard-3d.js` | Procedural 65% keyboard geometry, studio environment, contact shadow |
-| `assets/three.module.min.js` | three.js 0.186.0, vendored |
+| `assets/thock-keyboard.glb` | Baked keyboard model — 4 primitives, one material per colorway target |
+| `tools/bake-keyboard-glb.py` | Offline splitter that produced the .glb (not shipped to the store) |
+| `assets/three.module.min.js` | three.js 0.186.0, vendored, plus GLTFLoader and its two utils |
 
 `three.module.min.js` ships from npm importing `./three.core.js` — the
 *unminified* core. The vendored copy is patched to `./three.core.min.js` so the
 relative resolve against Shopify's asset CDN picks up the minified build. Redo
 that patch if you ever bump the three.js version.
+
+## The 3D model
+
+`assets/thock-keyboard.glb` started life as a CGTrader model (#6220946) that
+exported as a **single 52k-triangle mesh with one flat material and no
+textures** — unusable for a colorway configurator, which needs the case and the
+keycaps tinted independently.
+
+`tools/bake-keyboard-glb.py` fixes that offline: it separates the mesh into
+connected components, classifies each one, and writes a new `.glb` with four
+primitives and materials named `case`, `cap_base`, `cap_mod` and `cap_accent` —
+matching the section's colorway block settings one-for-one.
+
+The classification hinges on one observation: keycaps and switch stems overlap
+almost completely in footprint width, so size can't separate them, but they
+differ tenfold in triangle count. Filtering at 150 triangles isolates exactly 68
+keycaps — a 65% layout — and their widths then cluster cleanly at 1u.
+
+To re-run it after swapping the source model:
+
+```bash
+python3 tools/bake-keyboard-glb.py path/to/source.glb assets/thock-keyboard.glb --report
+```
+
+`--report` prints the key count, the detected rows and where it thinks Esc is.
+If the key count isn't close to 68, the classifier needs retuning before you
+trust the output.
+
+Model by Modelcore, via CGTrader, under their Royalty Free license.
 
 ## Migration
 

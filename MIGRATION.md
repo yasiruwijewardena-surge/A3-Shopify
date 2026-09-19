@@ -41,13 +41,18 @@ Each colorway block matches a variant value by exact string (`Obsidian`,
 still renders, the 3D board just won't change colour. If you rename variants,
 update the block's **Variant option value** field to match.
 
-### 4. Images uploaded to Content → Files
+### 4. The 3D model
 
-There are currently none — the hero is generated geometry and the fallback is
-CSS. If you add any, either put them in `assets/` (travels with the theme) or
-re-upload and repoint them after migration. Do not hardcode
-`cdn.shopify.com/s/files/...` URLs from the dev store; they break when the
-source store is paused.
+**Nothing to do.** `assets/thock-keyboard.glb` lives in the theme's asset
+folder, which Shopify accepts for `.glb`, so it moves with the theme like any
+stylesheet. No Files upload, no URL to repaste.
+
+This was worth verifying rather than assuming — the alternative (Content →
+Files) would have meant a hardcoded `cdn.shopify.com/s/files/...` URL that
+breaks the moment the source store is paused.
+
+If you add **images**, the same rule applies: put them in `assets/` so they
+travel. Files uploads do not.
 
 ### 5. Apps
 

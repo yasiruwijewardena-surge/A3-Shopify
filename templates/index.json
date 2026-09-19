@@ -88,7 +88,8 @@
         "min_height": 100,
         "quality": "auto",
         "show_scroll_cue": true,
-        "scroll_cue_label": "Scroll to take it apart"
+        "scroll_cue_label": "Scroll to take it apart",
+        "use_model": true
       }
     }
   },

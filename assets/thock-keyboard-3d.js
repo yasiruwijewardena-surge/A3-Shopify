@@ -275,6 +275,146 @@ export function createKeyboard(THREE, options = {}) {
 }
 
 /**
+ * Load the baked .glb and adapt it to the same interface `createKeyboard`
+ * returns, so the hero never has to care which board it's driving.
+ *
+ * The model is pre-split by tools/bake-keyboard-glb.py into four primitives
+ * with materials named case / cap_base / cap_mod / cap_accent — matching the
+ * colorway block settings one-for-one. All this has to do is find them.
+ *
+ * Resolves to null rather than rejecting when the model is unusable, so the
+ * caller can fall back to the procedural board on a plain falsy check.
+ */
+export function loadKeyboardModel(THREE, GLTFLoader, url) {
+  return new Promise((resolve) => {
+    new GLTFLoader().load(
+      url,
+      (gltf) => {
+        try {
+          resolve(adaptModel(THREE, gltf.scene));
+        } catch (err) {
+          console.warn('[THOCK] model loaded but could not be adapted', err);
+          resolve(null);
+        }
+      },
+      undefined,
+      (err) => {
+        console.warn('[THOCK] model failed to load', err);
+        resolve(null);
+      }
+    );
+  });
+}
+
+function adaptModel(THREE, scene) {
+  const found = {};
+  scene.traverse((node) => {
+    if (!node.isMesh) return;
+    node.castShadow = true;
+    node.receiveShadow = true;
+    if (node.material && node.material.name) found[node.material.name] = node.material;
+  });
+
+  const caseMat = found.case;
+  const capBaseMat = found.cap_base;
+  const capAccentMat = found.cap_accent;
+  const capModMat = found.cap_mod;
+
+  // Without separable materials the colorway system is meaningless, and a
+  // silently-monochrome board is worse than the procedural one. Bail so the
+  // caller falls back.
+  if (!caseMat || !capBaseMat) {
+    throw new Error('expected materials "case" and "cap_base" on the model');
+  }
+
+  const root = new THREE.Group();
+  root.add(scene);
+
+  // The bake centres X/Z and rests the board on y=0; drop it so its middle is
+  // on the origin, matching the procedural board's pivot.
+  const box = new THREE.Box3().setFromObject(scene);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+  scene.position.y -= center.y;
+
+  root.rotation.x = 0.06;
+
+  const materials = { caseMat, capBaseMat, capAccentMat, capModMat };
+  const tweenFrom = {};
+  const scratch = new THREE.Color();
+
+  function asColor(hex) {
+    return scratch.set(hex || '#888888');
+  }
+
+  function each(fn) {
+    Object.keys(materials).forEach((k) => {
+      if (materials[k]) fn(k, materials[k]);
+    });
+  }
+
+  const colorKeyFor = {
+    caseMat: 'case',
+    capBaseMat: 'capBase',
+    capAccentMat: 'capAccent',
+    capModMat: 'capText',
+  };
+
+  return {
+    root,
+    // The bake merges all caps into four primitives, so there are no per-key
+    // meshes to animate. The hero checks this before staggering an entrance.
+    keys: [],
+    keyField: scene,
+    materials,
+    size: { width: size.x, depth: size.z, height: size.y },
+
+    applyColorway(cw) {
+      if (!cw) return;
+      each((key, mat) => {
+        const hex = cw[colorKeyFor[key]];
+        if (hex) mat.color.set(hex);
+      });
+      if (typeof cw.metalness === 'number') caseMat.metalness = cw.metalness;
+      if (typeof cw.roughness === 'number') caseMat.roughness = cw.roughness;
+    },
+
+    beginColorwayTween() {
+      each((key, mat) => {
+        tweenFrom[key] = mat.color.clone();
+      });
+      tweenFrom.metalness = caseMat.metalness;
+      tweenFrom.roughness = caseMat.roughness;
+    },
+
+    tweenColorway(cw, t) {
+      if (!cw || !tweenFrom.caseMat) return;
+      each((key, mat) => {
+        const hex = cw[colorKeyFor[key]];
+        if (hex && tweenFrom[key]) mat.color.copy(tweenFrom[key]).lerp(asColor(hex), t);
+      });
+      if (typeof cw.metalness === 'number') {
+        caseMat.metalness = tweenFrom.metalness + (cw.metalness - tweenFrom.metalness) * t;
+      }
+      if (typeof cw.roughness === 'number') {
+        caseMat.roughness = tweenFrom.roughness + (cw.roughness - tweenFrom.roughness) * t;
+      }
+    },
+
+    dispose() {
+      scene.traverse((node) => {
+        if (node.isMesh) {
+          node.geometry.dispose();
+          if (node.material) node.material.dispose();
+        }
+      });
+    },
+  };
+}
+
+/**
  * Studio lighting without three.js `examples/` — we only vendored the core
  * build, so RoomEnvironment isn't available. A painted equirect gradient run
  * through PMREM gives convincing metal reflections for ~2 KB of code.
