@@ -2,6 +2,14 @@
    THOCK — design system layer
    Loaded after Dawn's base.css. Scoped to .thock so nothing here can leak
    into Dawn's cart, PDP or checkout templates.
+
+   IMPORTANT — Dawn sets `html { font-size: 62.5% }`, so **1rem = 10px here**,
+   not 16px. Every rem below is on that basis: --fs-fine: 1.3rem is 13px.
+
+   This is easy to get wrong and hard to spot, because the fluid clamp() sizes
+   are driven by vw and look correct regardless — only the fixed values shrink.
+   An earlier pass authored these against a 16px root and shipped a 6.9px
+   eyebrow and an 8.1px add-to-cart label before anyone measured them.
    ========================================================================== */
 
 .thock {
@@ -36,10 +44,10 @@
   --fs-mega: clamp(3.5rem, 11vw, 11rem);
   --fs-display: clamp(2.75rem, 6.5vw, 6rem);
   --fs-title: clamp(1.75rem, 3.2vw, 3rem);
-  --fs-lead: clamp(1.0625rem, 1.5vw, 1.375rem);
-  --fs-body: 1rem;
-  --fs-fine: 0.8125rem;
-  --fs-micro: 0.6875rem;
+  --fs-lead: clamp(1.7rem, 1.5vw, 2.2rem);
+  --fs-body: 1.6rem;
+  --fs-fine: 1.3rem;
+  --fs-micro: 1.1rem;
 
   /* --- Rhythm ----------------------------------------------------------- */
   --sp-section: clamp(6rem, 13vw, 14rem);
@@ -70,9 +78,12 @@
    Primitives
    ========================================================================== */
 
+/* Tracks Dawn's own container rather than hardcoding a number, so THOCK
+   sections line up with the header and footer — and follow the merchant if
+   they change Theme settings → Layout → Page width. */
 .thock__shell {
   width: 100%;
-  max-width: 96rem;
+  max-width: var(--page-width, 120rem);
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
@@ -177,7 +188,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 1.15rem 2.25rem;
+  padding: 1.8rem 3.6rem;
   border-radius: 2px;
   cursor: pointer;
   display: inline-flex;

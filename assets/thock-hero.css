@@ -141,7 +141,9 @@
 }
 
 .thock-hero__price {
-  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+  /* Has to stay clearly above --fs-lead (22px). At the old ceiling the price
+     and the body copy landed within half a pixel of each other. */
+  font-size: clamp(2.6rem, 2.4vw, 3.4rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -246,7 +248,7 @@
 /* Text options (switch type) render as a stacked list of pills. */
 .thock-hero__swatches--text .thock-hero__swatch-label {
   display: block;
-  padding: 0.85rem 1rem;
+  padding: 1.4rem 1.6rem;
   border: 1px solid var(--t-line);
   border-radius: 2px;
   font-size: var(--fs-fine);

@@ -79,7 +79,7 @@
   display: grid;
   grid-template-columns: 2.5rem 1fr;
   gap: 1rem;
-  padding: 0.85rem 0;
+  padding: 1.2rem 0;
   border-top: 1px solid var(--t-line-soft);
   /* Inactive layers stay legible rather than disappearing — this list is the
      section's content, not a progress indicator. */
@@ -110,7 +110,7 @@
 }
 
 .thock-exploded__layer-name {
-  font-size: 1rem;
+  font-size: 1.6rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0;
@@ -239,7 +239,7 @@
   }
 
   .thock-exploded__layer {
-    padding: 0.7rem 0;
+    padding: 1rem 0;
   }
 
   .thock-exploded__hint {
