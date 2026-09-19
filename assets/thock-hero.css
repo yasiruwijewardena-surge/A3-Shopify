@@ -4,8 +4,13 @@
 
 .thock-hero {
   position: relative;
-  min-height: var(--hero-min-height, 100vh);
-  min-height: var(--hero-min-height, 100svh);
+  /* --hero-chrome is measured by thock-hero.js: the header + announcement bar
+     stacked above this section. Without subtracting it, a 100vh hero always
+     overflows the fold by that exact amount. */
+  min-height: calc(var(--hero-min-height, 100) * 1vh - var(--hero-chrome, 0px));
+  /* svh excludes mobile browser chrome, so the hero doesn't jump when the
+     address bar collapses. Overrides the vh line wherever it's supported. */
+  min-height: calc(var(--hero-min-height, 100) * 1svh - var(--hero-chrome, 0px));
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -50,11 +55,9 @@
   pointer-events: none;
 }
 
-.thock-hero__stage,
-.thock-hero__canvas {
-  /* Board sits in the upper half so the copy below never fights it. */
-  transform: translateY(-6%);
-}
+/* No transform on the stage — the camera's lookAt offset already places the
+   board in the upper frame. Nudging the canvas as well just crops the top row
+   of keycaps behind the header. */
 
 /* --------------------------------------------------------------------------
    Fallback board — pure CSS, shown until (or instead of) WebGL
@@ -338,11 +341,6 @@
   .thock-hero__stage {
     inset: 0 0 auto 0;
     height: 42vh;
-  }
-
-  .thock-hero__stage,
-  .thock-hero__canvas {
-    transform: none;
   }
 
   .thock-hero__layout {

@@ -58,6 +58,14 @@
   color: var(--t-bone);
 }
 
+/* Dawn sets an explicit `color` on every heading (base.css h1–h6/.h0–.h5), so
+   headings inside a THOCK section would inherit Dawn's near-black foreground
+   instead of ours and vanish against the dark background. `:where()` keeps this
+   at zero specificity, so the component rules below still override it. */
+.thock :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, figcaption, legend, label) {
+  color: inherit;
+}
+
 /* ==========================================================================
    Primitives
    ========================================================================== */

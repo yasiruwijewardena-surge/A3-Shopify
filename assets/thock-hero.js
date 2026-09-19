@@ -37,8 +37,33 @@
       return;
     }
 
+    trackChromeHeight(root);
     var commerce = initCommerce(root, data);
     initVisuals(root, data, commerce);
+  }
+
+  /**
+   * A 100vh hero that starts below the header overflows the fold by exactly the
+   * height of whatever sits above it. Dawn publishes --header-height, but that
+   * misses the announcement bar, and both are merchant-toggleable. Measuring the
+   * section's own offset covers every combination without guessing.
+   *
+   * getBoundingClientRect().top + scrollY is scroll-independent, and the hero's
+   * position doesn't depend on its own height, so there's no feedback loop.
+   */
+  function trackChromeHeight(root) {
+    function measure() {
+      var top = root.getBoundingClientRect().top + window.scrollY;
+      root.style.setProperty('--hero-chrome', Math.max(0, Math.round(top)) + 'px');
+    }
+
+    measure();
+    window.addEventListener('resize', measure, { passive: true });
+
+    // Web fonts and the sticky-header script both settle after first paint and
+    // can change the header's height.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    window.addEventListener('load', measure, { once: true });
   }
 
   /* ======================================================================
@@ -243,7 +268,7 @@
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPower ? 1.25 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.45;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     var scene = new THREE.Scene();
@@ -273,11 +298,30 @@
       var h = Math.max(1, rect.height);
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
+      camera.updateProjectionMatrix();
 
-      // Pull the camera back on narrow viewports so the board never crops.
-      var portrait = w / h < 1;
-      camera.position.set(0, portrait ? 7.2 : 6.2, portrait ? 13.5 : 11.5);
-      camera.lookAt(0, -0.4, 0);
+      // Frame the board from its real dimensions rather than hardcoded camera
+      // coordinates. A 16u-wide board at a fixed distance crops the moment the
+      // viewport aspect changes, and every laptop has a different one.
+      var portrait = camera.aspect < 1;
+      var margin = portrait ? 1.15 : 1.45;
+      var halfFov = (camera.fov * Math.PI) / 360;
+
+      // Distance needed to fit the board's width, and to fit its depth once
+      // foreshortened by the viewing angle. Take whichever is further.
+      var elevation = portrait ? 0.72 : 0.58; // radians above the horizon
+      var fitWidth = board.size.width * margin;
+      var fitDepth = board.size.depth * margin * Math.sin(elevation);
+
+      var distForWidth = fitWidth / camera.aspect / (2 * Math.tan(halfFov));
+      var distForDepth = fitDepth / (2 * Math.tan(halfFov));
+      var dist = Math.max(distForWidth, distForDepth);
+
+      camera.position.set(0, Math.sin(elevation) * dist, Math.cos(elevation) * dist);
+
+      // Aim below the board so it sits in the upper part of the frame, leaving
+      // the lower third clear for the headline and the configurator panel.
+      camera.lookAt(0, -dist * (portrait ? 0.06 : 0.16), 0);
       camera.updateProjectionMatrix();
     }
 

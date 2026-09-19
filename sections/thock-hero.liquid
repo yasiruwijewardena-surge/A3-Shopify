@@ -16,7 +16,8 @@
   data-three-url="{{ 'three.module.min.js' | asset_url }}"
   data-keyboard-url="{{ 'thock-keyboard-3d.js' | asset_url }}"
   data-quality="{{ section.settings.quality }}"
-  style="--hero-min-height: {{ section.settings.min_height }}vh;"
+  {%- comment -%} Unitless so the stylesheet can pick vh vs svh. {%- endcomment -%}
+  style="--hero-min-height: {{ section.settings.min_height }};"
 >
   {%- if product == blank -%}
     {%- comment -%}

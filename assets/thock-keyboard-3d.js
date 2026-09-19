@@ -286,18 +286,19 @@ export function createStudioEnvironment(THREE, renderer) {
   const ctx = canvas.getContext('2d');
 
   const sky = ctx.createLinearGradient(0, 0, 0, 256);
-  sky.addColorStop(0, '#2a3038');
-  sky.addColorStop(0.45, '#0e1013');
-  sky.addColorStop(1, '#050607');
+  sky.addColorStop(0, '#5a6675');
+  sky.addColorStop(0.45, '#242a31');
+  sky.addColorStop(1, '#0a0c0e');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, 512, 256);
 
   // Key light — the bright soft box the case highlights will rake across.
-  paintBlob(ctx, 150, 46, 120, 70, 'rgba(255,255,255,0.95)');
+  paintBlob(ctx, 150, 46, 130, 78, 'rgba(255,255,255,1)');
   // Warm rim from behind right, so the silhouette separates from the bg.
-  paintBlob(ctx, 400, 96, 90, 60, 'rgba(255,138,74,0.5)');
-  // Cool fill from the left.
-  paintBlob(ctx, 40, 120, 100, 80, 'rgba(120,170,255,0.3)');
+  paintBlob(ctx, 400, 92, 100, 66, 'rgba(255,150,90,0.85)');
+  // Cool fill from the left, which is what keeps a near-black case from
+  // collapsing into the background — reflected light, not raised albedo.
+  paintBlob(ctx, 40, 116, 110, 88, 'rgba(150,190,255,0.6)');
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.mapping = THREE.EquirectangularReflectionMapping;
