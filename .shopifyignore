@@ -1,0 +1,6 @@
+# Repo files that are not part of the theme upload.
+docs/
+seed/
+README.md
+MIGRATION.md
+LICENSE.md

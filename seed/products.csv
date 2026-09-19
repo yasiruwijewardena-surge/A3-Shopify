@@ -1,0 +1,45 @@
+Handle,Title,Body (HTML),Vendor,Type,Tags,Published,Option1 Name,Option1 Value,Option2 Name,Option2 Value,Variant SKU,Variant Grams,Variant Inventory Tracker,Variant Inventory Qty,Variant Inventory Policy,Variant Fulfillment Service,Variant Price,Variant Compare At Price,Variant Requires Shipping,Variant Taxable,Variant Weight Unit,Gift Card,Status
+thock-model-65,THOCK Model 65,"<p>A 65% gasket-mounted keyboard machined from a single billet of 6063 aluminium. Five layers of foam, a polycarbonate plate, and a flex-cut PCB tuned for one thing: the sound.</p><p>Hot-swappable. QMK/VIA ready. South-facing RGB. USB-C with a detachable coiled cable.</p>",THOCK,Keyboard,"flagship,65-percent,hot-swap,gasket-mount",TRUE,Colorway,Obsidian,Switch,Nocturne Linear 45g,TH-M65-OBS-LIN,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Obsidian,,Copper Tactile 55g,TH-M65-OBS-TAC,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Obsidian,,Sky Clicky 60g,TH-M65-OBS-CLK,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Milk Tea,,Nocturne Linear 45g,TH-M65-MLK-LIN,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Milk Tea,,Copper Tactile 55g,TH-M65-MLK-TAC,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Milk Tea,,Sky Clicky 60g,TH-M65-MLK-CLK,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Botanical,,Nocturne Linear 45g,TH-M65-BOT-LIN,1180,,0,deny,manual,279.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Botanical,,Copper Tactile 55g,TH-M65-BOT-TAC,1180,,0,deny,manual,279.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Botanical,,Sky Clicky 60g,TH-M65-BOT-CLK,1180,,0,deny,manual,279.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Ember,,Nocturne Linear 45g,TH-M65-EMB-LIN,1180,,0,deny,manual,269.00,299.00,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Ember,,Copper Tactile 55g,TH-M65-EMB-TAC,1180,,0,deny,manual,269.00,299.00,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Ember,,Sky Clicky 60g,TH-M65-EMB-CLK,1180,,0,deny,manual,269.00,299.00,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Arctic,,Nocturne Linear 45g,TH-M65-ARC-LIN,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Arctic,,Copper Tactile 55g,TH-M65-ARC-TAC,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-65,,,,,,,,Arctic,,Sky Clicky 60g,TH-M65-ARC-CLK,1180,,0,deny,manual,249.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,THOCK Model 75,"<p>The Model 65 with a function row and a rotary encoder. Same billet aluminium case, same gasket mount, same obsessive foam stack — 12 more keys.</p><p>Hot-swappable. QMK/VIA ready. Knob mapped to volume out of the box.</p>",THOCK,Keyboard,"75-percent,hot-swap,gasket-mount,knob",TRUE,Colorway,Obsidian,Switch,Nocturne Linear 45g,TH-M75-OBS-LIN,1420,,0,deny,manual,299.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Obsidian,,Copper Tactile 55g,TH-M75-OBS-TAC,1420,,0,deny,manual,299.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Obsidian,,Sky Clicky 60g,TH-M75-OBS-CLK,1420,,0,deny,manual,299.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Milk Tea,,Nocturne Linear 45g,TH-M75-MLK-LIN,1420,,0,deny,manual,299.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Milk Tea,,Copper Tactile 55g,TH-M75-MLK-TAC,1420,,0,deny,manual,299.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Milk Tea,,Sky Clicky 60g,TH-M75-MLK-CLK,1420,,0,deny,manual,299.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Arctic,,Nocturne Linear 45g,TH-M75-ARC-LIN,1420,,0,deny,manual,309.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Arctic,,Copper Tactile 55g,TH-M75-ARC-TAC,1420,,0,deny,manual,309.00,,TRUE,TRUE,g,FALSE,active
+thock-model-75,,,,,,,,Arctic,,Sky Clicky 60g,TH-M75-ARC-CLK,1420,,0,deny,manual,309.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-nocturne-linear,Nocturne Linear 45g Switches,"<p>Factory-lubed linear. 45g bottom-out, 3.4mm travel, POM stem in a nylon housing. Deep and muted — the switch we voice the Model 65 around.</p>",THOCK,Switches,"switches,linear,factory-lubed",TRUE,Pack Size,35 switches,,,TH-SW-NOC-35,120,,0,deny,manual,21.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-nocturne-linear,,,,,,,,70 switches,,,TH-SW-NOC-70,240,,0,deny,manual,39.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-nocturne-linear,,,,,,,,110 switches,,,TH-SW-NOC-110,375,,0,deny,manual,59.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-copper-tactile,Copper Tactile 55g Switches,"<p>A rounded tactile bump right at the top of the stroke, then a clean drop. 55g bottom-out. For people who want to feel the actuation without announcing it to the room.</p>",THOCK,Switches,"switches,tactile,factory-lubed",TRUE,Pack Size,35 switches,,,TH-SW-COP-35,120,,0,deny,manual,23.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-copper-tactile,,,,,,,,70 switches,,,TH-SW-COP-70,240,,0,deny,manual,43.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-copper-tactile,,,,,,,,110 switches,,,TH-SW-COP-110,375,,0,deny,manual,65.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-sky-clicky,Sky Clicky 60g Switches,"<p>A click-bar mechanism, not a click jacket — sharper, more consistent, and it resets with the same sound it fires with. 60g. Unapologetically loud.</p>",THOCK,Switches,"switches,clicky",TRUE,Pack Size,35 switches,,,TH-SW-SKY-35,125,,0,deny,manual,22.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-sky-clicky,,,,,,,,70 switches,,,TH-SW-SKY-70,250,,0,deny,manual,41.00,,TRUE,TRUE,g,FALSE,active
+thock-switches-sky-clicky,,,,,,,,110 switches,,,TH-SW-SKY-110,390,,0,deny,manual,62.00,,TRUE,TRUE,g,FALSE,active
+thock-keycaps-obsidian,Obsidian Keycap Set,"<p>Cherry-profile PBT, doubleshot legends that will outlive the board. 142 keys, covers 60% through full-size. Charcoal base, bone legends, a single ember accent on Escape.</p>",THOCK,Keycaps,"keycaps,pbt,cherry-profile",TRUE,Title,Default Title,,,TH-KC-OBS,640,,0,deny,manual,119.00,,TRUE,TRUE,g,FALSE,active
+thock-keycaps-milk-tea,Milk Tea Keycap Set,"<p>Cherry-profile PBT doubleshot in warm beige and muted brown. 142 keys. The colorway that got everyone into this hobby, done properly.</p>",THOCK,Keycaps,"keycaps,pbt,cherry-profile",TRUE,Title,Default Title,,,TH-KC-MLK,640,,0,deny,manual,119.00,,TRUE,TRUE,g,FALSE,active
+thock-keycaps-botanical,Botanical Keycap Set,"<p>Cherry-profile PBT doubleshot in deep green and cream, with a dye-sub novelty set. 148 keys. Limited run of 500.</p>",THOCK,Keycaps,"keycaps,pbt,cherry-profile,limited",TRUE,Title,Default Title,,,TH-KC-BOT,660,,0,deny,manual,129.00,,TRUE,TRUE,g,FALSE,active
+thock-coiled-cable,Aviator Coiled Cable,"<p>Double-sleeved coiled USB-C with a machined aviator connector. 1.5m extended, 0.4m coiled. Matched to each colorway.</p>",THOCK,Accessory,"cable,accessory",TRUE,Colorway,Obsidian,,,TH-CBL-OBS,180,,0,deny,manual,49.00,,TRUE,TRUE,g,FALSE,active
+thock-coiled-cable,,,,,,,,Milk Tea,,,TH-CBL-MLK,180,,0,deny,manual,49.00,,TRUE,TRUE,g,FALSE,active
+thock-coiled-cable,,,,,,,,Botanical,,,TH-CBL-BOT,180,,0,deny,manual,49.00,,TRUE,TRUE,g,FALSE,active
+thock-coiled-cable,,,,,,,,Arctic,,,TH-CBL-ARC,180,,0,deny,manual,49.00,,TRUE,TRUE,g,FALSE,active
+thock-wrist-rest,Machined Wrist Rest,<p>Weighted to sit exactly flush with a Model 65. Choose cold-rolled aluminium or oiled walnut.</p>,THOCK,Accessory,"wrist-rest,accessory",TRUE,Material,Aluminium,,,TH-WR-ALU,890,,0,deny,manual,79.00,,TRUE,TRUE,g,FALSE,active
+thock-wrist-rest,,,,,,,,Walnut,,,TH-WR-WAL,610,,0,deny,manual,89.00,,TRUE,TRUE,g,FALSE,active
+thock-service-kit,Switch Service Kit,"<p>Switch puller, keycap puller, opener, tweezers, brush, and a 5ml bottle of 205g0. Everything needed to pull a board apart and put it back together quieter.</p>",THOCK,Accessory,"tools,accessory",TRUE,Title,Default Title,,,TH-KIT-SVC,310,,0,deny,manual,45.00,,TRUE,TRUE,g,FALSE,active
+thock-travel-case,Hard Travel Case,"<p>Die-cut EVA foam interior sized for 65% and 75% boards, with a cutout for a cable and a set of spare switches. Water-resistant shell.</p>",THOCK,Accessory,"case,accessory",TRUE,Title,Default Title,,,TH-CASE-65,540,,0,deny,manual,59.00,,TRUE,TRUE,g,FALSE,active
