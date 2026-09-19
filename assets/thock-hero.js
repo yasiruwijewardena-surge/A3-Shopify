@@ -154,6 +154,16 @@
       listeners.forEach(function (fn) {
         fn({ variant: variant, colorway: colorway, colorwayData: colorway ? data.colorways[colorway] : null });
       });
+
+      // Broadcast so other sections (the sticky bar, the colorway rail) can
+      // follow the hero's selection without being wired directly to it. A
+      // DOM event keeps them decoupled — any of them can be removed from the
+      // template without breaking the others.
+      document.dispatchEvent(
+        new CustomEvent('thock:variant', {
+          detail: { variant: variant, colorway: colorway, sectionId: root.dataset.sectionId },
+        })
+      );
     }
 
     function setUnavailable() {

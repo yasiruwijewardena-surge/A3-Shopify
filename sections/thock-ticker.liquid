@@ -1,0 +1,86 @@
+{{ 'thock-ticker.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign quotes = section.blocks | where: 'type', 'quote'
+-%}
+
+<section class="thock thock-ticker" style="--ticker-duration: {{ section.settings.speed }}s;">
+  {%- if quotes.size == 0 -%}
+    <div class="thock__shell"><p class="thock__lead">Add a quote to start the ticker.</p></div>
+  {%- else -%}
+    {%- comment -%}
+      The marquee is decorative repetition of content that is already readable.
+      The first list is the real content; the duplicate is aria-hidden so the
+      quotes aren't announced twice.
+    {%- endcomment -%}
+    <div class="thock-ticker__viewport">
+      <ul class="thock-ticker__track">
+        {%- for block in quotes -%}
+          <li class="thock-ticker__item" {{ block.shopify_attributes }}>
+            <blockquote class="thock-ticker__quote">
+              <p>{{ block.settings.quote | escape }}</p>
+              <footer class="thock__fine thock-ticker__by">
+                {{- block.settings.attribution | escape -}}
+              </footer>
+            </blockquote>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      <ul class="thock-ticker__track" aria-hidden="true">
+        {%- for block in quotes -%}
+          <li class="thock-ticker__item">
+            <blockquote class="thock-ticker__quote">
+              <p>{{ block.settings.quote | escape }}</p>
+              <footer class="thock__fine thock-ticker__by">
+                {{- block.settings.attribution | escape -}}
+              </footer>
+            </blockquote>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "THOCK · Quote ticker",
+  "tag": "section",
+  "class": "thock-ticker-section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Loop duration",
+      "min": 20,
+      "max": 120,
+      "step": 5,
+      "unit": "s",
+      "default": 60,
+      "info": "Longer is slower."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "quote",
+      "name": "Quote",
+      "settings": [
+        { "type": "textarea", "id": "quote", "label": "Quote" },
+        { "type": "text", "id": "attribution", "label": "Attribution" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "THOCK · Quote ticker",
+      "blocks": [
+        { "type": "quote", "settings": { "quote": "I have owned eleven boards. This is the first one I have not immediately taken apart.", "attribution": "Dee K. · verified buyer" } },
+        { "type": "quote", "settings": { "quote": "The foam stack is the real story. Nothing rings, nothing rattles, and the spacebar sounds like the rest of the board.", "attribution": "Marcus T. · verified buyer" } },
+        { "type": "quote", "settings": { "quote": "Ordered the Milk Tea on a whim. My partner has now ordered one too, which was not the plan.", "attribution": "Priya R. · verified buyer" } },
+        { "type": "quote", "settings": { "quote": "Hot-swap actually works properly here. Pulled forty switches, no bent pins, no fuss.", "attribution": "Sam O. · verified buyer" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

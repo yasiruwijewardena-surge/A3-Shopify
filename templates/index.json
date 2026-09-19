@@ -224,11 +224,190 @@
         "picker_label": "Compare",
         "caption": "Force required through the stroke. The marker is the actuation point \u2014 where the keypress registers."
       }
+    },
+    "colorways": {
+      "type": "thock-colorways",
+      "blocks": {
+        "cw0": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Obsidian",
+            "swatch": "#1c1f22",
+            "description": "Anodised near-black with an ember Escape."
+          }
+        },
+        "cw1": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Milk Tea",
+            "swatch": "#c9ab84",
+            "description": "Warm beige on brown. The one that started it."
+          }
+        },
+        "cw2": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Botanical",
+            "swatch": "#2f4f3a",
+            "description": "Deep green and cream. Limited to 500."
+          }
+        },
+        "cw3": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Ember",
+            "swatch": "#d2451e",
+            "description": "Burnt orange over oxblood."
+          }
+        },
+        "cw4": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Arctic",
+            "swatch": "#dfe3e6",
+            "description": "Raw silver, bone caps, slate modifiers."
+          }
+        }
+      },
+      "block_order": [
+        "cw0",
+        "cw1",
+        "cw2",
+        "cw3",
+        "cw4"
+      ],
+      "settings": {
+        "product": "thock-model-65",
+        "colorway_option_name": "Colorway",
+        "eyebrow": "Five finishes",
+        "heading": "Pick a side",
+        "show_controls": true
+      }
+    },
+    "bento": {
+      "type": "thock-bento",
+      "blocks": {
+        "cell0": {
+          "type": "cell",
+          "settings": {
+            "size": "wide",
+            "stat": "6063",
+            "stat_unit": "aluminium",
+            "title": "Machined, not cast",
+            "description": "Cut from one billet, anodised, then sandblasted. No seams, no filler, and the weight sits where you want it."
+          }
+        },
+        "cell1": {
+          "type": "cell",
+          "settings": {
+            "size": "sm",
+            "stat": "1.2",
+            "stat_unit": "kg",
+            "title": "Stays put",
+            "description": "Heavy enough that it does not move when you do."
+          }
+        },
+        "cell2": {
+          "type": "cell",
+          "settings": {
+            "size": "tall",
+            "stat": "",
+            "stat_unit": "",
+            "title": "Hot-swap everything",
+            "description": "Five-pin sockets on every position. Change switches without a soldering iron, and change your mind as often as you like."
+          }
+        },
+        "cell3": {
+          "type": "cell",
+          "settings": {
+            "size": "sm",
+            "stat": "QMK",
+            "stat_unit": "/ VIA",
+            "title": "Remap anything",
+            "description": "Layers, macros, tap-hold. Configured in the browser."
+          }
+        },
+        "cell4": {
+          "type": "cell",
+          "settings": {
+            "size": "wide",
+            "stat": "5",
+            "stat_unit": "layers of foam",
+            "title": "Tuned, not stuffed",
+            "description": "Poron, PE and a case-bottom layer, each chosen for what it removes rather than how much it deadens."
+          }
+        }
+      },
+      "block_order": [
+        "cell0",
+        "cell1",
+        "cell2",
+        "cell3",
+        "cell4"
+      ],
+      "settings": {
+        "eyebrow": "The details",
+        "heading": "Built like it costs more"
+      }
+    },
+    "ticker": {
+      "type": "thock-ticker",
+      "blocks": {
+        "q0": {
+          "type": "quote",
+          "settings": {
+            "quote": "I have owned eleven boards. This is the first one I have not immediately taken apart.",
+            "attribution": "Dee K. \u00b7 verified buyer"
+          }
+        },
+        "q1": {
+          "type": "quote",
+          "settings": {
+            "quote": "The foam stack is the real story. Nothing rings, nothing rattles, and the spacebar sounds like the rest of the board.",
+            "attribution": "Marcus T. \u00b7 verified buyer"
+          }
+        },
+        "q2": {
+          "type": "quote",
+          "settings": {
+            "quote": "Ordered the Milk Tea on a whim. My partner has now ordered one too, which was not the plan.",
+            "attribution": "Priya R. \u00b7 verified buyer"
+          }
+        },
+        "q3": {
+          "type": "quote",
+          "settings": {
+            "quote": "Hot-swap actually works properly here. Pulled forty switches, no bent pins, no fuss.",
+            "attribution": "Sam O. \u00b7 verified buyer"
+          }
+        }
+      },
+      "block_order": [
+        "q0",
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "settings": {
+        "speed": 60
+      }
+    },
+    "sticky_cart": {
+      "type": "thock-sticky-cart",
+      "settings": {
+        "product": "thock-model-65",
+        "button_label": "Add to cart",
+        "reveal_after": 80
+      }
     }
   },
   "order": [
     "hero",
     "exploded",
-    "switches"
+    "switches",
+    "bento",
+    "colorways",
+    "ticker",
+    "sticky_cart"
   ]
 }

@@ -1,0 +1,153 @@
+/* ==========================================================================
+   THOCK — colorway rail
+   ========================================================================== */
+
+.thock-colorways {
+  border-top: 1px solid var(--t-line-soft);
+  overflow: hidden;
+}
+
+.thock-colorways__head {
+  margin-bottom: clamp(2.5rem, 5vw, 5rem);
+}
+
+.thock-colorways__rail-wrap {
+  /* Full-bleed rail: the first card lines up with the shell, the rest run off
+     the right edge so it reads as continuing rather than ending. */
+  margin-inline: auto;
+  max-width: calc(var(--page-width, 120rem) + 2 * var(--gutter));
+}
+
+.thock-colorways__rail {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--gutter) 1.5rem;
+  display: flex;
+  gap: 1.6rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--t-line) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.thock-colorways__rail::-webkit-scrollbar {
+  height: 4px;
+}
+
+.thock-colorways__rail::-webkit-scrollbar-thumb {
+  background: var(--t-line);
+  border-radius: 2px;
+}
+
+.thock-colorways__item {
+  flex: 0 0 auto;
+  width: clamp(22rem, 26vw, 30rem);
+  scroll-snap-align: start;
+}
+
+.thock-colorways__card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--t-line-soft);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--t-ink);
+  transition: border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.thock-colorways__card:hover,
+.thock-colorways__card:focus-visible {
+  border-color: var(--t-faint);
+  transform: translateY(-3px);
+}
+
+.thock-colorways__card.is-active {
+  border-color: var(--t-bone);
+}
+
+.thock-colorways__chip {
+  display: block;
+  height: clamp(10rem, 14vw, 15rem);
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, 0.22), transparent 60%),
+    var(--card-swatch, #2a2e33);
+}
+
+.thock-colorways__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.8rem;
+  /* Fill the card so the price can be pinned to the bottom. Descriptions run
+     to different lengths, and without this the prices sit at different
+     heights across the rail. */
+  flex: 1 1 auto;
+}
+
+.thock-colorways__name {
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.thock-colorways__blurb {
+  font-size: var(--fs-fine);
+  line-height: 1.5;
+  color: var(--t-mute);
+}
+
+.thock-colorways__price {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  font-size: var(--fs-fine);
+  color: var(--t-faint);
+}
+
+.thock-colorways__card.is-active .thock-colorways__price {
+  color: var(--t-ember);
+}
+
+/* --------------------------------------------------------------------------
+   Controls
+   -------------------------------------------------------------------------- */
+
+.thock-colorways__controls {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
+.thock-colorways__nav {
+  width: 4.4rem;
+  height: 4.4rem;
+  border: 1px solid var(--t-line);
+  background: transparent;
+  color: var(--t-bone);
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 1.6rem;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.thock-colorways__nav:hover:not(:disabled) {
+  border-color: var(--t-ember);
+  color: var(--t-ember);
+}
+
+.thock-colorways__nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* Touch devices scroll the rail directly; the buttons are redundant there. */
+@media (hover: none) {
+  .thock-colorways__controls {
+    display: none;
+  }
+}

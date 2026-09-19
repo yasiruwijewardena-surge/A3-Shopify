@@ -1,0 +1,137 @@
+{{ 'thock-colorways.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'thock-colorways.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign product = section.settings.product
+  assign cw_name = section.settings.colorway_option_name
+  assign cw_index = 0
+  if product != blank
+    for opt in product.options
+      if opt == cw_name
+        assign cw_index = forloop.index0
+      endif
+    endfor
+  endif
+-%}
+
+<section class="thock thock-colorways thock__section" data-thock-colorways>
+  <div class="thock__shell">
+    <div class="thock-colorways__head">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="thock__eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+      <h2 class="thock__display" data-reveal>{{ section.settings.heading | escape }}</h2>
+    </div>
+  </div>
+
+  {%- if product == blank -%}
+    <div class="thock__shell">
+      <p class="thock__lead">Choose a product to list its colorways.</p>
+    </div>
+  {%- else -%}
+    {%- comment -%}
+      Built from the product's real variants, not a hand-written list. Adding a
+      sixth colorway in Shopify makes it appear here with a working link and
+      the right price; no theme edit needed.
+    {%- endcomment -%}
+    <div class="thock-colorways__rail-wrap">
+      <ul class="thock-colorways__rail" data-thock-rail>
+        {%- assign seen = '' -%}
+        {%- for variant in product.variants -%}
+          {%- assign value = variant.options[cw_index] -%}
+          {%- assign token = '|' | append: value | append: '|' -%}
+          {%- unless seen contains token -%}
+            {%- assign seen = seen | append: token -%}
+            {%- liquid
+              assign swatch = ''
+              assign blurb = ''
+              for block in section.blocks
+                if block.type == 'colorway' and block.settings.option_value == value
+                  assign swatch = block.settings.swatch
+                  assign blurb = block.settings.description
+                endif
+              endfor
+            -%}
+            <li class="thock-colorways__item" data-reveal>
+              <a
+                class="thock-colorways__card"
+                href="{{ product.url }}?variant={{ variant.id }}"
+                data-thock-colorway
+                data-variant-id="{{ variant.id }}"
+                data-colorway="{{ value | escape }}"
+                {% if swatch != blank %}style="--card-swatch: {{ swatch }};"{% endif %}
+              >
+                <span class="thock-colorways__chip" aria-hidden="true"></span>
+                <span class="thock-colorways__body">
+                  <span class="thock-colorways__name">{{ value | escape }}</span>
+                  {%- if blurb != blank -%}
+                    <span class="thock-colorways__blurb">{{ blurb | escape }}</span>
+                  {%- endif -%}
+                  <span class="thock-colorways__price thock__numeric">
+                    {{- variant.price | money -}}
+                    {%- unless variant.available %} · Sold out{% endunless -%}
+                  </span>
+                </span>
+              </a>
+            </li>
+          {%- endunless -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+
+    {%- if section.settings.show_controls -%}
+      <div class="thock__shell thock-colorways__controls">
+        <button class="thock-colorways__nav" type="button" data-rail-prev aria-label="Scroll colorways left">
+          <span aria-hidden="true">&larr;</span>
+        </button>
+        <button class="thock-colorways__nav" type="button" data-rail-next aria-label="Scroll colorways right">
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "THOCK · Colorway rail",
+  "tag": "section",
+  "class": "thock-colorways-section",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    {
+      "type": "text",
+      "id": "colorway_option_name",
+      "label": "Colorway option name",
+      "default": "Colorway",
+      "info": "Must match the product option name exactly."
+    },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Five finishes" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Pick a side" },
+    { "type": "checkbox", "id": "show_controls", "label": "Show scroll buttons", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "colorway",
+      "name": "Colorway detail",
+      "settings": [
+        { "type": "text", "id": "option_value", "label": "Variant option value", "info": "Must match a Colorway value exactly." },
+        { "type": "color", "id": "swatch", "label": "Swatch", "default": "#1c1f22" },
+        { "type": "text", "id": "description", "label": "Short description" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "THOCK · Colorway rail",
+      "blocks": [
+        { "type": "colorway", "settings": { "option_value": "Obsidian", "swatch": "#1c1f22", "description": "Anodised near-black with an ember Escape." } },
+        { "type": "colorway", "settings": { "option_value": "Milk Tea", "swatch": "#c9ab84", "description": "Warm beige on brown. The one that started it." } },
+        { "type": "colorway", "settings": { "option_value": "Botanical", "swatch": "#2f4f3a", "description": "Deep green and cream. Limited to 500." } },
+        { "type": "colorway", "settings": { "option_value": "Ember", "swatch": "#d2451e", "description": "Burnt orange over oxblood." } },
+        { "type": "colorway", "settings": { "option_value": "Arctic", "swatch": "#dfe3e6", "description": "Raw silver, bone caps, slate modifiers." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,99 @@
+{{ 'thock-sticky-cart.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'thock-sticky-cart.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign product = section.settings.product
+  assign form_id = 'thock-sticky-form-' | append: section.id
+-%}
+
+{%- if product != blank -%}
+  {%- capture variant_json -%}
+    [
+    {%- for variant in product.variants -%}
+      {
+        "id": {{ variant.id }},
+        "title": {{ variant.title | json }},
+        "available": {{ variant.available }},
+        "price": {{ variant.price | money | json }}
+      }{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+    ]
+  {%- endcapture -%}
+
+  <div
+    class="thock thock-sticky"
+    data-thock-sticky-cart
+    data-reveal-after="{{ section.settings.reveal_after }}"
+    aria-hidden="true"
+    hidden
+  >
+    <script type="application/json" data-thock-sticky-data>
+      { "variants": {{ variant_json | strip_newlines | strip }} }
+    </script>
+
+    <div class="thock-sticky__inner">
+      <div class="thock-sticky__info">
+        <p class="thock-sticky__title">{{ product.title | escape }}</p>
+        <p class="thock__fine thock-sticky__variant" data-thock-sticky-variant>
+          {{- product.selected_or_first_available_variant.title | escape -}}
+        </p>
+      </div>
+
+      <p class="thock-sticky__price thock__numeric" data-thock-sticky-price>
+        {{- product.selected_or_first_available_variant.price | money -}}
+      </p>
+
+      <product-form class="product-form thock-sticky__form" data-section-id="{{ section.id }}">
+        <div class="product-form__error-message-wrapper" role="alert" hidden>
+          <span class="product-form__error-message"></span>
+        </div>
+
+        {%- form 'product', product, id: form_id, class: 'form', novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+          <input
+            type="hidden"
+            name="id"
+            value="{{ product.selected_or_first_available_variant.id }}"
+            class="product-variant-id"
+            data-thock-sticky-variant-id
+          >
+          <div class="product-form__buttons">
+            <button type="submit" name="add" class="thock__btn thock-sticky__add">
+              <span data-thock-sticky-label>{{ section.settings.button_label | escape }}</span>
+              {%- render 'loading-spinner' -%}
+            </button>
+          </div>
+        {%- endform -%}
+      </product-form>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "THOCK · Sticky cart",
+  "tag": "section",
+  "class": "thock-sticky-section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "info": "Should match the hero's product so the bar follows the configurator."
+    },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Add to cart" },
+    {
+      "type": "range",
+      "id": "reveal_after",
+      "label": "Reveal after scrolling",
+      "min": 20,
+      "max": 200,
+      "step": 10,
+      "unit": "%",
+      "default": 80,
+      "info": "Percentage of one viewport height. The bar stays hidden above this."
+    }
+  ],
+  "presets": [{ "name": "THOCK · Sticky cart" }]
+}
+{% endschema %}

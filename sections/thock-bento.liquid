@@ -1,0 +1,91 @@
+{{ 'thock-bento.css' | asset_url | stylesheet_tag }}
+
+<section class="thock thock-bento thock__section">
+  <div class="thock__shell">
+    <div class="thock-bento__head">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="thock__eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+      <h2 class="thock__display" data-reveal>{{ section.settings.heading | escape }}</h2>
+    </div>
+
+    {%- if section.blocks.size == 0 -%}
+      <p class="thock__lead">Add cells to build the grid.</p>
+    {%- else -%}
+      <div class="thock-bento__grid">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'cell' -%}
+            <article
+              class="thock-bento__cell thock-bento__cell--{{ block.settings.size }}"
+              data-reveal
+              style="--reveal-delay: {{ forloop.index0 | times: 60 }}ms;"
+              {{ block.shopify_attributes }}
+            >
+              {%- if block.settings.stat != blank -%}
+                <p class="thock-bento__stat thock__numeric">
+                  {{- block.settings.stat | escape -}}
+                  {%- if block.settings.stat_unit != blank -%}
+                    <span class="thock-bento__unit">{{ block.settings.stat_unit | escape }}</span>
+                  {%- endif -%}
+                </p>
+              {%- endif -%}
+
+              <h3 class="thock-bento__title">{{ block.settings.title | escape }}</h3>
+
+              {%- if block.settings.description != blank -%}
+                <p class="thock-bento__text">{{ block.settings.description | escape }}</p>
+              {%- endif -%}
+            </article>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "THOCK · Spec grid",
+  "tag": "section",
+  "class": "thock-bento-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The details" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Built like it costs more" }
+  ],
+  "blocks": [
+    {
+      "type": "cell",
+      "name": "Cell",
+      "settings": [
+        {
+          "type": "select",
+          "id": "size",
+          "label": "Size",
+          "options": [
+            { "value": "sm", "label": "Small — 1 column" },
+            { "value": "wide", "label": "Wide — 2 columns" },
+            { "value": "tall", "label": "Tall — 2 rows" }
+          ],
+          "default": "sm"
+        },
+        { "type": "text", "id": "stat", "label": "Stat", "info": "Optional large figure, e.g. 1.2kg" },
+        { "type": "text", "id": "stat_unit", "label": "Stat unit" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Gasket mount" },
+        { "type": "textarea", "id": "description", "label": "Description" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "THOCK · Spec grid",
+      "blocks": [
+        { "type": "cell", "settings": { "size": "wide", "stat": "6063", "stat_unit": "aluminium", "title": "Machined, not cast", "description": "Cut from one billet, anodised, then sandblasted. No seams, no filler, and the weight sits where you want it." } },
+        { "type": "cell", "settings": { "size": "sm", "stat": "1.2", "stat_unit": "kg", "title": "Stays put", "description": "Heavy enough that it does not move when you do." } },
+        { "type": "cell", "settings": { "size": "tall", "title": "Hot-swap everything", "description": "Five-pin sockets on every position. Change switches without a soldering iron, and change your mind as often as you like." } },
+        { "type": "cell", "settings": { "size": "sm", "stat": "QMK", "stat_unit": "/ VIA", "title": "Remap anything", "description": "Layers, macros, tap-hold. Configured in the browser." } },
+        { "type": "cell", "settings": { "size": "wide", "stat": "5", "stat_unit": "layers of foam", "title": "Tuned, not stuffed", "description": "Poron, PE and a case-bottom layer, each chosen for what it removes rather than how much it deadens." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

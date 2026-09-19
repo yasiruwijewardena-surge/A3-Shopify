@@ -1,0 +1,86 @@
+/* ==========================================================================
+   THOCK — quote ticker
+   CSS-only marquee: no JS, no rAF, and it keeps running while other sections
+   pause their loops off-screen.
+   ========================================================================== */
+
+.thock-ticker {
+  border-block: 1px solid var(--t-line-soft);
+  padding-block: clamp(3rem, 5vw, 5rem);
+  overflow: hidden;
+}
+
+.thock-ticker__viewport {
+  display: flex;
+  width: max-content;
+  /* Both tracks animate together; the duplicate fills the gap as the first
+     scrolls out, so the loop has no visible seam. */
+  animation: thock-ticker-scroll var(--ticker-duration, 60s) linear infinite;
+}
+
+/* Pause on hover or when anything inside takes focus, so a quote can
+   actually be read. */
+.thock-ticker:hover .thock-ticker__viewport,
+.thock-ticker:focus-within .thock-ticker__viewport {
+  animation-play-state: paused;
+}
+
+@keyframes thock-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.thock-ticker__track {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: none;
+}
+
+.thock-ticker__item {
+  flex: none;
+  width: clamp(28rem, 34vw, 42rem);
+  padding-inline: clamp(1.6rem, 3vw, 3.2rem);
+  border-right: 1px solid var(--t-line-soft);
+}
+
+.thock-ticker__quote {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  height: 100%;
+}
+
+.thock-ticker__quote p {
+  margin: 0;
+  font-size: 1.7rem;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.thock-ticker__quote p::before { content: '\201C'; }
+.thock-ticker__quote p::after { content: '\201D'; }
+
+.thock-ticker__by {
+  margin: auto 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — becomes a static, horizontally scrollable row. The quotes
+   are still all reachable, they just don't move on their own.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .thock-ticker__viewport {
+    animation: none;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .thock-ticker__viewport > [aria-hidden='true'] {
+    display: none;
+  }
+}
