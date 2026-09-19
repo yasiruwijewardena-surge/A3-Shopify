@@ -1,0 +1,366 @@
+/* ==========================================================================
+   THOCK — hero configurator
+   ========================================================================== */
+
+.thock-hero {
+  position: relative;
+  min-height: var(--hero-min-height, 100vh);
+  min-height: var(--hero-min-height, 100svh);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  isolation: isolate;
+  padding-block: clamp(5rem, 9vw, 8rem) clamp(2.5rem, 5vw, 4rem);
+}
+
+/* Warm floor glow behind the board — gives the dark hero a light source
+   rather than a flat black background. */
+.thock-hero::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 -30% 0;
+  height: 80%;
+  background: radial-gradient(60% 60% at 50% 50%, rgba(255, 90, 31, 0.13), transparent 70%);
+  pointer-events: none;
+  z-index: -2;
+}
+
+.thock-hero__onboarding {
+  padding-block: 8rem;
+}
+
+/* --------------------------------------------------------------------------
+   3D stage
+   -------------------------------------------------------------------------- */
+
+.thock-hero__stage {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.thock-hero__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* The canvas is behind the copy; the section handles pointer events so
+     parallax still tracks the cursor over text. */
+  pointer-events: none;
+}
+
+.thock-hero__stage,
+.thock-hero__canvas {
+  /* Board sits in the upper half so the copy below never fights it. */
+  transform: translateY(-6%);
+}
+
+/* --------------------------------------------------------------------------
+   Fallback board — pure CSS, shown until (or instead of) WebGL
+   -------------------------------------------------------------------------- */
+
+.thock-hero__fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 600ms var(--ease-out);
+}
+
+.thock-hero__fallback[data-hidden='true'] {
+  opacity: 0;
+}
+
+.thock-hero__fallback-board {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 0.35vw;
+  width: min(62vw, 46rem);
+  padding: 1.4vw;
+  border-radius: 0.8vw;
+  background: linear-gradient(160deg, #23282d, #101315 60%);
+  box-shadow: 0 4vw 8vw rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transform: perspective(90rem) rotateX(46deg) rotateZ(-1deg);
+}
+
+.thock-hero__fallback-board span {
+  aspect-ratio: 1;
+  border-radius: 0.18vw;
+  background: linear-gradient(180deg, #33383e, #22262a);
+  box-shadow: inset 0 0.1vw 0 rgba(255, 255, 255, 0.08);
+}
+
+.thock-hero__fallback-board span:first-child {
+  background: linear-gradient(180deg, var(--t-ember), var(--t-ember-dim));
+}
+
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+
+.thock-hero__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: end;
+  width: 100%;
+}
+
+.thock-hero__heading {
+  margin-top: 0.5rem;
+}
+
+.thock-hero__copy .thock__lead {
+  max-width: 44ch;
+}
+
+/* --------------------------------------------------------------------------
+   Configurator panel
+   -------------------------------------------------------------------------- */
+
+.thock-hero__panel {
+  background: rgba(13, 15, 17, 0.72);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  border: 1px solid var(--t-line);
+  border-radius: 4px;
+  padding: clamp(1.5rem, 2.2vw, 2.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.thock-hero__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.thock-hero__price {
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.thock-hero__compare {
+  font-size: var(--fs-fine);
+  color: var(--t-faint);
+  text-decoration: line-through;
+}
+
+.thock-hero__option {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0; /* fieldsets default to min-content and blow out grid layouts */
+}
+
+.thock-hero__option-legend {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0;
+  margin-bottom: 0.85rem;
+}
+
+.thock-hero__option-value {
+  font-size: var(--fs-fine);
+  color: var(--t-bone);
+  font-weight: 500;
+}
+
+.thock-hero__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.thock-hero__swatches--text {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+}
+
+/* Visually hidden but focusable — the label carries the visuals. */
+.thock-hero__swatch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.thock-hero__swatch {
+  cursor: pointer;
+  position: relative;
+  display: block;
+}
+
+/* Colour swatches: the circle is the control, the label is a tooltip. */
+.thock-hero__swatch--color .thock-hero__swatch-face {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--swatch, #888);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 -0.4rem 0.6rem rgba(0, 0, 0, 0.35);
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.thock-hero__swatch--color .thock-hero__swatch-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.thock-hero__swatch--color:hover .thock-hero__swatch-face {
+  transform: scale(1.08);
+}
+
+.thock-hero__swatch--color input:checked + .thock-hero__swatch-face {
+  box-shadow: 0 0 0 2px var(--t-void), 0 0 0 3px var(--t-bone),
+    inset 0 -0.4rem 0.6rem rgba(0, 0, 0, 0.35);
+}
+
+.thock-hero__swatch--color input:focus-visible + .thock-hero__swatch-face {
+  outline: 2px solid var(--t-ember);
+  outline-offset: 3px;
+}
+
+/* Text options (switch type) render as a stacked list of pills. */
+.thock-hero__swatches--text .thock-hero__swatch-label {
+  display: block;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--t-line);
+  border-radius: 2px;
+  font-size: var(--fs-fine);
+  color: var(--t-mute);
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.thock-hero__swatches--text .thock-hero__swatch:hover .thock-hero__swatch-label {
+  border-color: var(--t-faint);
+  color: var(--t-bone);
+}
+
+.thock-hero__swatches--text input:checked ~ .thock-hero__swatch-label {
+  border-color: var(--t-bone);
+  color: var(--t-bone);
+  background: rgba(244, 241, 236, 0.05);
+}
+
+.thock-hero__swatches--text input:focus-visible ~ .thock-hero__swatch-label {
+  outline: 2px solid var(--t-ember);
+  outline-offset: 2px;
+}
+
+.thock-hero__add {
+  width: 100%;
+}
+
+.thock-hero__reassurance {
+  margin: -0.75rem 0 0;
+  text-align: center;
+}
+
+.thock-hero__form .product-form__error-message-wrapper {
+  color: #ff8a6a;
+  font-size: var(--fs-fine);
+  margin-bottom: 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   Scroll cue
+   -------------------------------------------------------------------------- */
+
+.thock-hero__cue {
+  position: absolute;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.thock-hero__cue-line {
+  width: 1px;
+  height: 3rem;
+  background: linear-gradient(180deg, var(--t-faint), transparent);
+  transform-origin: top;
+  animation: thock-cue 2.4s var(--ease-in-out) infinite;
+}
+
+@keyframes thock-cue {
+  0%, 100% { transform: scaleY(0.35); opacity: 0.4; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+  .thock-hero__layout {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .thock-hero__panel {
+    max-width: 30rem;
+  }
+}
+
+@media (max-width: 749px) {
+  .thock-hero {
+    justify-content: flex-start;
+    padding-top: clamp(3rem, 12vw, 5rem);
+  }
+
+  /* On phones the board becomes a backdrop rather than the subject —
+     competing with the panel for the fold is a losing fight. */
+  .thock-hero__stage {
+    inset: 0 0 auto 0;
+    height: 42vh;
+  }
+
+  .thock-hero__stage,
+  .thock-hero__canvas {
+    transform: none;
+  }
+
+  .thock-hero__layout {
+    margin-top: 38vh;
+    gap: 2rem;
+  }
+
+  .thock-hero__panel {
+    max-width: none;
+  }
+
+  .thock-hero__cue {
+    display: none;
+  }
+}
+
+/* When 3D is declined or failed, the CSS board is the hero, so give it room. */
+.thock-hero[data-render3d='declined'] .thock-hero__stage,
+.thock-hero[data-render3d='failed'] .thock-hero__stage {
+  opacity: 0.85;
+}

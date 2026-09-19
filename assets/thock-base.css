@@ -1,0 +1,266 @@
+/* ==========================================================================
+   THOCK — design system layer
+   Loaded after Dawn's base.css. Scoped to .thock so nothing here can leak
+   into Dawn's cart, PDP or checkout templates.
+   ========================================================================== */
+
+.thock {
+  /* --- Surface ---------------------------------------------------------- */
+  --t-void: #08090a;
+  --t-ink: #0d0f11;
+  --t-raise: #14171a;
+  --t-line: #23282d;
+  --t-line-soft: #1a1e22;
+
+  /* --- Type colour ------------------------------------------------------ */
+  --t-bone: #f4f1ec;
+  --t-mute: #8b9299;
+  --t-faint: #5a6169;
+
+  /* --- Accent ----------------------------------------------------------- */
+  --t-ember: #ff5a1f;
+  --t-ember-dim: #c9410f;
+
+  /* --- Colorway tokens (mirror the Shopify variant names) --------------- */
+  --cw-obsidian: #1c1f22;
+  --cw-milk-tea: #c9ab84;
+  --cw-botanical: #2f4f3a;
+  --cw-ember: #d2451e;
+  --cw-arctic: #dfe3e6;
+
+  /* --- Type ------------------------------------------------------------- */
+  --t-display: 'Söhne Breit', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --t-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  /* Fluid scale — clamp() so there are no layout-shifting breakpoint jumps */
+  --fs-mega: clamp(3.5rem, 11vw, 11rem);
+  --fs-display: clamp(2.75rem, 6.5vw, 6rem);
+  --fs-title: clamp(1.75rem, 3.2vw, 3rem);
+  --fs-lead: clamp(1.0625rem, 1.5vw, 1.375rem);
+  --fs-body: 1rem;
+  --fs-fine: 0.8125rem;
+  --fs-micro: 0.6875rem;
+
+  /* --- Rhythm ----------------------------------------------------------- */
+  --sp-section: clamp(6rem, 13vw, 14rem);
+  --sp-block: clamp(2.5rem, 5vw, 5rem);
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
+  --measure: 62ch;
+
+  /* --- Motion ----------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur-base: 420ms;
+  --dur-slow: 900ms;
+
+  background: var(--t-void);
+  color: var(--t-bone);
+}
+
+/* ==========================================================================
+   Primitives
+   ========================================================================== */
+
+.thock__shell {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.thock__section {
+  padding-block: var(--sp-section);
+  position: relative;
+}
+
+/* Hairline rules — the cheapest way to make a dark page feel engineered
+   rather than just dark. */
+.thock__rule {
+  border: 0;
+  border-top: 1px solid var(--t-line-soft);
+  margin: 0;
+}
+
+/* Overline / eyebrow label */
+.thock__eyebrow {
+  font-family: var(--t-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--t-faint);
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  margin: 0 0 1.5rem;
+}
+
+.thock__eyebrow::before {
+  content: '';
+  width: 1.75rem;
+  height: 1px;
+  background: var(--t-ember);
+  flex: none;
+}
+
+/* Display headings. Tight tracking at large sizes is the single biggest
+   difference between "designed" and "default". */
+.thock__display {
+  font-size: var(--fs-display);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.thock__mega {
+  font-size: var(--fs-mega);
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.thock__title {
+  font-size: var(--fs-title);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.thock__lead {
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--t-mute);
+  max-width: var(--measure);
+  margin: 1.5rem 0 0;
+  text-wrap: pretty;
+}
+
+.thock__fine {
+  font-family: var(--t-mono);
+  font-size: var(--fs-fine);
+  color: var(--t-faint);
+  letter-spacing: 0.02em;
+}
+
+/* Tabular figures so prices don't jitter when a variant swap changes them. */
+.thock__numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.thock__btn {
+  --btn-bg: var(--t-bone);
+  --btn-fg: var(--t-void);
+  appearance: none;
+  border: 1px solid transparent;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: inherit;
+  font-size: var(--fs-fine);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1.15rem 2.25rem;
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.thock__btn:hover {
+  --btn-bg: var(--t-ember);
+  --btn-fg: var(--t-bone);
+}
+
+.thock__btn:active {
+  transform: translateY(1px);
+}
+
+.thock__btn[disabled],
+.thock__btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.thock__btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--t-bone);
+  border-color: var(--t-line);
+}
+
+.thock__btn--ghost:hover {
+  --btn-bg: transparent;
+  --btn-fg: var(--t-ember);
+  border-color: var(--t-ember);
+}
+
+/* Focus: visible on every interactive element, and never removed. Dawn's
+   default focus ring disappears against a near-black background. */
+.thock :focus-visible {
+  outline: 2px solid var(--t-ember);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   Scroll reveal
+   Elements start hidden ONLY once JS has confirmed it can observe them.
+   Without this guard, a JS failure would leave the page permanently blank.
+   ========================================================================== */
+
+.thock[data-reveal-ready='true'] [data-reveal] {
+  opacity: 0;
+  transform: translateY(var(--reveal-shift, 1.5rem));
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.thock[data-reveal-ready='true'] [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* Stagger helper — set once on a parent, children inherit an index-based delay */
+.thock [data-reveal-stagger] > * {
+  --reveal-delay: calc(var(--reveal-i, 0) * 70ms);
+}
+
+/* ==========================================================================
+   Reduced motion
+   Not a nicety: vestibular disorders are triggered by exactly the kind of
+   scroll-scrubbed parallax this page is built on. Everything still reads,
+   nothing moves.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .thock[data-reveal-ready='true'] [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .thock *,
+  .thock *::before,
+  .thock *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

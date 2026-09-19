@@ -1,75 +1,98 @@
 {
   "sections": {
-    "image_banner": {
-      "type": "image-banner",
+    "hero": {
+      "type": "thock-hero",
       "blocks": {
-        "heading": {
-          "type": "heading",
+        "cw_obsidian": {
+          "type": "colorway",
           "settings": {
-            "heading": "Browse our latest products",
-            "heading_size": "h0"
+            "option_value": "Obsidian",
+            "swatch": "#1c1f22",
+            "case_color": "#1c1f22",
+            "cap_base": "#2a2e33",
+            "cap_accent": "#ff5a1f",
+            "cap_text": "#f4f1ec",
+            "metalness": 0.9,
+            "roughness": 0.3
           }
         },
-        "button": {
-          "type": "buttons",
+        "cw_milk_tea": {
+          "type": "colorway",
           "settings": {
-            "button_label_1": "Shop all",
-            "button_link_1": "shopify://collections/all",
-            "button_style_secondary_1": true,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
+            "option_value": "Milk Tea",
+            "swatch": "#c9ab84",
+            "case_color": "#8a7358",
+            "cap_base": "#d8c3a5",
+            "cap_accent": "#8c6a4a",
+            "cap_text": "#4a3c2f",
+            "metalness": 0.4,
+            "roughness": 0.5
+          }
+        },
+        "cw_botanical": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Botanical",
+            "swatch": "#2f4f3a",
+            "case_color": "#2f4f3a",
+            "cap_base": "#e8e2d4",
+            "cap_accent": "#2f4f3a",
+            "cap_text": "#39503f",
+            "metalness": 0.5,
+            "roughness": 0.4
+          }
+        },
+        "cw_ember": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Ember",
+            "swatch": "#d2451e",
+            "case_color": "#3a1d13",
+            "cap_base": "#e5e0d8",
+            "cap_accent": "#d2451e",
+            "cap_text": "#3a1d13",
+            "metalness": 0.6,
+            "roughness": 0.4
+          }
+        },
+        "cw_arctic": {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Arctic",
+            "swatch": "#dfe3e6",
+            "case_color": "#c8ced3",
+            "cap_base": "#eef1f3",
+            "cap_accent": "#5c6b78",
+            "cap_text": "#2c3339",
+            "metalness": 0.8,
+            "roughness": 0.3
           }
         }
       },
       "block_order": [
-        "heading",
-        "button"
+        "cw_obsidian",
+        "cw_milk_tea",
+        "cw_botanical",
+        "cw_ember",
+        "cw_arctic"
       ],
       "settings": {
-        "image_overlay_opacity": 40,
-        "image_height": "large",
-        "desktop_content_position": "bottom-center",
-        "show_text_box": false,
-        "image_behavior": "none",
-        "desktop_content_alignment": "center",
-        "color_scheme": "scheme-3",
-        "mobile_content_alignment": "center",
-        "stack_images_on_mobile": false,
-        "show_text_below": false
-      }
-    },
-    "featured_collection": {
-      "type": "featured-collection",
-      "settings": {
-        "title": "Featured products",
-        "heading_size": "h2",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "collection": "all",
-        "products_to_show": 8,
-        "columns_desktop": 4,
-        "color_scheme": "scheme-1",
-        "full_width": false,
-        "show_view_all": true,
-        "view_all_style": "solid",
-        "enable_desktop_slider": false,
-        "swipe_on_mobile": false,
-        "image_ratio": "adapt",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "none",
-        "columns_mobile": "2",
-        "padding_top": 44,
-        "padding_bottom": 36
+        "product": "shopify://products/thock-model-65",
+        "eyebrow": "Model 65 \u2014 gasket mount",
+        "heading": "Hear the difference",
+        "lead": "A 65% board machined from one billet of aluminium, tuned across five layers of foam until it stopped sounding like a keyboard and started sounding like a full stop.",
+        "button_label": "Add to cart",
+        "reassurance": "Free shipping over $150 \u00b7 2-year warranty \u00b7 Ships in 3 days",
+        "colorway_option_name": "Colorway",
+        "switch_option_name": "Switch",
+        "min_height": 100,
+        "quality": "auto",
+        "show_scroll_cue": true,
+        "scroll_cue_label": "Scroll to take it apart"
       }
     }
   },
   "order": [
-    "image_banner",
-    "featured_collection"
+    "hero"
   ]
 }

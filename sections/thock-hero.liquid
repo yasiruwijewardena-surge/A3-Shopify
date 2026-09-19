@@ -1,0 +1,465 @@
+{{ 'thock-hero.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'thock-hero.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign product = section.settings.product
+  assign cw_option = section.settings.colorway_option_name
+  assign sw_option = section.settings.switch_option_name
+  assign form_id = 'thock-hero-form-' | append: section.id
+-%}
+
+<section
+  class="thock thock-hero"
+  data-thock-hero
+  data-section-id="{{ section.id }}"
+  data-three-url="{{ 'three.module.min.js' | asset_url }}"
+  data-keyboard-url="{{ 'thock-keyboard-3d.js' | asset_url }}"
+  data-quality="{{ section.settings.quality }}"
+  style="--hero-min-height: {{ section.settings.min_height }}vh;"
+>
+  {%- if product == blank -%}
+    {%- comment -%}
+      Onboarding state. A section that renders an empty void when unconfigured
+      is indistinguishable from a broken section in the theme editor.
+    {%- endcomment -%}
+    <div class="thock__shell thock-hero__onboarding">
+      <p class="thock__eyebrow">Hero configurator</p>
+      <h2 class="thock__title">Pick a product to configure</h2>
+      <p class="thock__lead">
+        Choose a keyboard in this section's settings. Its variants drive the 3D model's colorways,
+        the live price, and the add-to-cart button.
+      </p>
+    </div>
+  {%- else -%}
+    {%- comment -%} Compact variant payload — the full product JSON is ~40x larger. {%- endcomment -%}
+    {%- capture variant_json -%}
+      [
+      {%- for variant in product.variants -%}
+        {
+          "id": {{ variant.id }},
+          "options": {{ variant.options | json }},
+          "available": {{ variant.available }},
+          "price": {{ variant.price | money | json }},
+          "compareAt": {%- if variant.compare_at_price > variant.price -%}
+            {{ variant.compare_at_price | money | json }}
+          {%- else -%}null{%- endif -%}
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+      ]
+    {%- endcapture -%}
+
+    {%- capture colorway_json -%}
+      {
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'colorway' -%}
+          {{ block.settings.option_value | json }}: {
+            "swatch": {{ block.settings.swatch | default: '#888888' | json }},
+            "case": {{ block.settings.case_color | default: '#1c1f22' | json }},
+            "capBase": {{ block.settings.cap_base | default: '#2a2e33' | json }},
+            "capAccent": {{ block.settings.cap_accent | default: '#ff5a1f' | json }},
+            "capText": {{ block.settings.cap_text | default: '#f4f1ec' | json }},
+            "metalness": {{ block.settings.metalness }},
+            "roughness": {{ block.settings.roughness }}
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endif -%}
+      {%- endfor -%}
+      }
+    {%- endcapture -%}
+
+    <script type="application/json" data-thock-hero-data>
+      {
+        "optionNames": {{ product.options | json }},
+        "colorwayOption": {{ cw_option | json }},
+        "switchOption": {{ sw_option | json }},
+        "selectedId": {{ product.selected_or_first_available_variant.id | default: 0 }},
+        "variants": {{ variant_json | strip_newlines | strip }},
+        "colorways": {{ colorway_json | strip_newlines | strip }}
+      }
+    </script>
+
+    <div class="thock-hero__stage">
+      {%- comment -%}
+        The canvas is decorative — every fact it conveys (colorway, switch, price)
+        is also in the DOM panel beside it, so screen readers lose nothing.
+      {%- endcomment -%}
+      <canvas class="thock-hero__canvas" data-thock-hero-canvas aria-hidden="true"></canvas>
+
+      {%- comment -%} Shown until WebGL initialises, and permanently if it can't. {%- endcomment -%}
+      <div class="thock-hero__fallback" data-thock-hero-fallback aria-hidden="true">
+        <div class="thock-hero__fallback-board">
+          {%- for i in (1..68) -%}<span></span>{%- endfor -%}
+        </div>
+      </div>
+    </div>
+
+    <div class="thock__shell thock-hero__layout">
+      <div class="thock-hero__copy">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="thock__eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+
+        <h1 class="thock__mega thock-hero__heading" data-reveal style="--reveal-delay: 60ms;">
+          {{- section.settings.heading | default: product.title | escape -}}
+        </h1>
+
+        {%- if section.settings.lead != blank -%}
+          <p class="thock__lead" data-reveal style="--reveal-delay: 140ms;">
+            {{- section.settings.lead | escape -}}
+          </p>
+        {%- endif -%}
+      </div>
+
+      <div class="thock-hero__panel" data-reveal style="--reveal-delay: 220ms;">
+        <div class="thock-hero__price-row">
+          <span class="thock-hero__price thock__numeric" data-thock-price>
+            {{- product.selected_or_first_available_variant.price | money -}}
+          </span>
+          <span class="thock-hero__compare thock__numeric" data-thock-compare hidden></span>
+        </div>
+
+        {%- comment -%}
+          Radio groups, not buttons: arrow keys move between options and the
+          selection is announced. A div-with-click here would fail a11y review.
+        {%- endcomment -%}
+        {%- for option in product.options_with_values -%}
+          {%- assign is_colorway = false -%}
+          {%- if option.name == cw_option %}{% assign is_colorway = true %}{% endif -%}
+
+          <fieldset class="thock-hero__option" data-thock-option="{{ option.name | escape }}">
+            <legend class="thock-hero__option-legend">
+              <span class="thock__fine">{{ option.name | escape }}</span>
+              <span class="thock-hero__option-value" data-thock-option-value>
+                {{- option.selected_value | escape -}}
+              </span>
+            </legend>
+
+            <div class="thock-hero__swatches{% unless is_colorway %} thock-hero__swatches--text{% endunless %}">
+              {%- for value in option.values -%}
+                {%- liquid
+                  assign swatch_hex = ''
+                  if is_colorway
+                    for block in section.blocks
+                      if block.type == 'colorway' and block.settings.option_value == value
+                        assign swatch_hex = block.settings.swatch
+                      endif
+                    endfor
+                  endif
+                  assign input_id = section.id | append: '-' | append: forloop.parentloop.index | append: '-' | append: forloop.index
+                -%}
+                <label
+                  class="thock-hero__swatch{% if is_colorway %} thock-hero__swatch--color{% endif %}"
+                  for="thock-opt-{{ input_id }}"
+                  {% if swatch_hex != blank %}style="--swatch: {{ swatch_hex }};"{% endif %}
+                >
+                  <input
+                    type="radio"
+                    id="thock-opt-{{ input_id }}"
+                    name="thock-option-{{ section.id }}-{{ forloop.parentloop.index }}"
+                    value="{{ value | escape }}"
+                    data-option-position="{{ forloop.parentloop.index }}"
+                    {% if option.selected_value == value %}checked{% endif %}
+                  >
+                  <span class="thock-hero__swatch-face" aria-hidden="true"></span>
+                  <span class="thock-hero__swatch-label">{{ value | escape }}</span>
+                </label>
+              {%- endfor -%}
+            </div>
+          </fieldset>
+        {%- endfor -%}
+
+        <product-form class="product-form thock-hero__form" data-section-id="{{ section.id }}">
+          <div class="product-form__error-message-wrapper" role="alert" hidden>
+            <span class="product-form__error-message"></span>
+          </div>
+
+          {%- form 'product', product, id: form_id, class: 'form', novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+            <input
+              type="hidden"
+              name="id"
+              value="{{ product.selected_or_first_available_variant.id }}"
+              class="product-variant-id"
+              data-thock-variant-id
+            >
+            <div class="product-form__buttons">
+              <button
+                type="submit"
+                name="add"
+                class="thock__btn thock-hero__add"
+                {% if product.selected_or_first_available_variant.available == false %}disabled{% endif %}
+              >
+                <span data-thock-add-label>
+                  {%- if product.selected_or_first_available_variant.available -%}
+                    {{ section.settings.button_label | default: 'Add to cart' | escape }}
+                  {%- else -%}
+                    {{ 'products.product.sold_out' | t }}
+                  {%- endif -%}
+                </span>
+                {%- render 'loading-spinner' -%}
+              </button>
+            </div>
+          {%- endform -%}
+        </product-form>
+
+        {%- if section.settings.reassurance != blank -%}
+          <p class="thock__fine thock-hero__reassurance">{{ section.settings.reassurance | escape }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if section.settings.show_scroll_cue -%}
+      <div class="thock-hero__cue" aria-hidden="true">
+        <span class="thock__fine">{{ section.settings.scroll_cue_label | escape }}</span>
+        <span class="thock-hero__cue-line"></span>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "THOCK \u00b7 Hero configurator",
+  "tag": "section",
+  "class": "thock-hero-section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Keyboard",
+      "info": "Variants drive the 3D colorways, the live price and add-to-cart."
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Model 65 \u2014 gasket mount"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Hear the difference"
+    },
+    {
+      "type": "textarea",
+      "id": "lead",
+      "label": "Lead paragraph",
+      "default": "A 65% board machined from one billet of aluminium, tuned across five layers of foam until it stopped sounding like a keyboard and started sounding like a full stop."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Add to cart label",
+      "default": "Add to cart"
+    },
+    {
+      "type": "text",
+      "id": "reassurance",
+      "label": "Reassurance line",
+      "default": "Free shipping over $150 \u00b7 2-year warranty \u00b7 Ships in 3 days"
+    },
+    {
+      "type": "header",
+      "content": "Variant mapping"
+    },
+    {
+      "type": "text",
+      "id": "colorway_option_name",
+      "label": "Colorway option name",
+      "default": "Colorway",
+      "info": "Must match the product option name exactly."
+    },
+    {
+      "type": "text",
+      "id": "switch_option_name",
+      "label": "Switch option name",
+      "default": "Switch"
+    },
+    {
+      "type": "header",
+      "content": "Presentation"
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "Minimum height",
+      "min": 70,
+      "max": 110,
+      "step": 5,
+      "unit": "vh",
+      "default": 100
+    },
+    {
+      "type": "select",
+      "id": "quality",
+      "label": "3D quality",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto (recommended)"
+        },
+        {
+          "value": "high",
+          "label": "Always high"
+        },
+        {
+          "value": "low",
+          "label": "Always low"
+        }
+      ],
+      "default": "auto",
+      "info": "Auto steps down on low-memory devices and small screens."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll_cue",
+      "label": "Show scroll cue",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "scroll_cue_label",
+      "label": "Scroll cue label",
+      "default": "Scroll to take it apart"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "colorway",
+      "name": "Colorway",
+      "settings": [
+        {
+          "type": "text",
+          "id": "option_value",
+          "label": "Variant option value",
+          "info": "Must match a Colorway variant value exactly, e.g. Obsidian."
+        },
+        {
+          "type": "color",
+          "id": "swatch",
+          "label": "Swatch",
+          "default": "#1c1f22"
+        },
+        {
+          "type": "color",
+          "id": "case_color",
+          "label": "Case",
+          "default": "#1c1f22"
+        },
+        {
+          "type": "color",
+          "id": "cap_base",
+          "label": "Keycaps \u2014 base",
+          "default": "#2a2e33"
+        },
+        {
+          "type": "color",
+          "id": "cap_accent",
+          "label": "Keycaps \u2014 accent",
+          "default": "#ff5a1f"
+        },
+        {
+          "type": "color",
+          "id": "cap_text",
+          "label": "Keycaps \u2014 modifiers",
+          "default": "#f4f1ec"
+        },
+        {
+          "type": "range",
+          "id": "metalness",
+          "label": "Case metalness",
+          "min": 0,
+          "max": 1,
+          "step": 0.1,
+          "default": 0.9
+        },
+        {
+          "type": "range",
+          "id": "roughness",
+          "label": "Case roughness",
+          "min": 0,
+          "max": 1,
+          "step": 0.1,
+          "default": 0.3
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "THOCK \u00b7 Hero configurator",
+      "blocks": [
+        {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Obsidian",
+            "swatch": "#1c1f22",
+            "case_color": "#1c1f22",
+            "cap_base": "#2a2e33",
+            "cap_accent": "#ff5a1f",
+            "cap_text": "#f4f1ec",
+            "metalness": 0.9,
+            "roughness": 0.3
+          }
+        },
+        {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Milk Tea",
+            "swatch": "#c9ab84",
+            "case_color": "#8a7358",
+            "cap_base": "#d8c3a5",
+            "cap_accent": "#8c6a4a",
+            "cap_text": "#4a3c2f",
+            "metalness": 0.4,
+            "roughness": 0.5
+          }
+        },
+        {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Botanical",
+            "swatch": "#2f4f3a",
+            "case_color": "#2f4f3a",
+            "cap_base": "#e8e2d4",
+            "cap_accent": "#2f4f3a",
+            "cap_text": "#39503f",
+            "metalness": 0.5,
+            "roughness": 0.4
+          }
+        },
+        {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Ember",
+            "swatch": "#d2451e",
+            "case_color": "#3a1d13",
+            "cap_base": "#e5e0d8",
+            "cap_accent": "#d2451e",
+            "cap_text": "#3a1d13",
+            "metalness": 0.6,
+            "roughness": 0.4
+          }
+        },
+        {
+          "type": "colorway",
+          "settings": {
+            "option_value": "Arctic",
+            "swatch": "#dfe3e6",
+            "case_color": "#c8ced3",
+            "cap_base": "#eef1f3",
+            "cap_accent": "#5c6b78",
+            "cap_text": "#2c3339",
+            "metalness": 0.8,
+            "roughness": 0.3
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
