@@ -216,6 +216,66 @@ def component_bounds(positions, triangles, tri_indices):
 
 
 # ----------------------------------------------------------------------------
+# Keycap legends
+# ----------------------------------------------------------------------------
+
+# A standard 65% layout, back row first. The source model has no textures at
+# all -- the legends in its preview renders were Blender materials that didn't
+# survive the glTF conversion -- so they're generated at runtime from these
+# positions instead.
+LEGEND_ROWS = [
+    ['Esc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Bksp', 'Del'],
+    ['Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\', 'Home'],
+    ['Caps', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', "'", 'Enter', 'PgUp'],
+    ['Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 'Shift', 'Up', 'PgDn'],
+    ['Ctrl', 'Cmd', 'Alt', '', 'Alt', 'Fn', 'Ctrl', 'Left', 'Down', 'Right'],
+]
+
+
+def build_legends(caps, unit):
+    """Position + label for every keycap, for the runtime legend atlas.
+
+    Rows are ordered from the number row outward. Which end that is gets
+    decided by the spacebar: it's the widest cap and always sits on the row
+    nearest the typist, so the row containing it is the bottom one.
+    """
+    if not caps:
+        return []
+
+    rows = defaultdict(list)
+    for c in caps:
+        rows[round(c['cz'] / unit)].append(c)
+
+    # Only real rows. A couple of stray components bin on their own, and
+    # including them shifts every row's labels by one -- the number row ends up
+    # labelled as the Tab row and Escape lands on the wrong key.
+    ordered = sorted(r for r in rows if len(rows[r]) >= 8)
+    spacebar = max(caps, key=lambda c: c['w'])
+    bottom_key = round(spacebar['cz'] / unit)
+
+    # Walk away from the bottom row, so index 0 is always the number row.
+    if ordered and abs(ordered[0] - bottom_key) < abs(ordered[-1] - bottom_key):
+        ordered = list(reversed(ordered))
+
+    legends = []
+    for row_index, key in enumerate(ordered):
+        labels = LEGEND_ROWS[row_index] if row_index < len(LEGEND_ROWS) else []
+        for col, cap in enumerate(sorted(rows[key], key=lambda c: c['cx'])):
+            label = labels[col] if col < len(labels) else ''
+            if not label:
+                continue
+            legends.append({
+                'x': round(cap['cx'], 4),
+                'y': round(cap['ymax'], 4),
+                'z': round(cap['cz'], 4),
+                'w': round(cap['w'], 4),
+                'd': round(cap['d'], 4),
+                'label': label,
+            })
+    return legends
+
+
+# ----------------------------------------------------------------------------
 # Classification
 # ----------------------------------------------------------------------------
 
@@ -326,6 +386,8 @@ def classify(components, report=False):
         return [t for c in items for t in c['tris']]
 
     return {
+        '_caps': caps,
+        '_unit': unit,
         'case': tris_of(case),
         'switches': tris_of(switches),
         'cap_base': tris_of(alpha),
@@ -359,7 +421,7 @@ MATERIALS = [
 ]
 
 
-def build_glb(groups, positions, normals, uvs, triangles):
+def build_glb(groups, positions, normals, uvs, triangles, legends=None):
     buffer = bytearray()
     views, accessors, primitives = [], [], []
 
@@ -431,7 +493,10 @@ def build_glb(groups, positions, normals, uvs, triangles):
     gltf = {
         'asset': {'version': '2.0', 'generator': 'THOCK bake-keyboard-glb.py'},
         'scene': 0,
-        'scenes': [{'nodes': [0]}],
+        # Carried as scene extras rather than a sidecar file: GLTFLoader maps
+        # glTF `extras` onto Object3D.userData, so the runtime gets these for
+        # free with no second request.
+        'scenes': [{'nodes': [0], 'extras': {'legends': legends or []}}],
         'nodes': [{'mesh': 0, 'name': 'Keyboard'}],
         'meshes': [{'name': 'Keyboard', 'primitives': primitives}],
         'materials': [
@@ -531,6 +596,14 @@ def main():
 
     groups = classify(components, report=report)
 
+    # Private keys carry classification metadata, not triangle lists. Pull them
+    # out before anything iterates groups as geometry.
+    caps_meta = groups.pop('_caps')
+    unit = groups.pop('_unit')
+    legends = build_legends(caps_meta, unit)
+    if report:
+        print(f'  legends placed   : {len(legends)}')
+
     assigned = sum(len(v) for v in groups.values())
     if assigned != len(triangles):
         print(f'  ! {len(triangles) - assigned} triangles unassigned '
@@ -539,7 +612,7 @@ def main():
         groups['case'].extend(t for t in range(len(triangles)) if t not in seen)
 
     print('output primitives:')
-    blob = build_glb(groups, positions, normals, uvs, triangles)
+    blob = build_glb(groups, positions, normals, uvs, triangles, legends)
     open(dst, 'wb').write(blob)
     print(f'\nwrote {dst}  ({len(blob)/1e6:.2f} MB)')
 

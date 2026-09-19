@@ -84,10 +84,31 @@ This only affects the published theme: `shopify theme dev` serves raw files, so
 lazy-loaded 3D worked perfectly in local development and threw
 `ReferenceError: require is not defined` the moment it was pushed.
 
-The fix is `assets/thock-3d-boot.js`: a module that does all the imports
-*statically*, which is then lazy-loaded by injecting a `<script type="module">`
-tag (`THOCK.load3D()` in `thock-motion.js`). Same deferral, no dynamic import.
+The fix is `assets/thock-3d-boot.js.liquid`: a module that does all the imports
+*statically*, lazy-loaded by injecting a `<script type="module">` tag
+(`THOCK.load3D()` in `thock-motion.js`). Same deferral, no dynamic import.
 Do not reintroduce `import()` in any theme asset.
+
+### …and serves unversioned asset paths from a stale cache
+
+That boot file is rendered through Liquid for a second reason. A relative
+specifier like `'./thock-keyboard-3d.js'` resolves to the **unversioned** asset
+path, which Shopify's CDN caches aggressively — so edits to an imported module
+never reach visitors. Measured on this store after a successful push:
+
+| URL | bytes | current? |
+| --- | --- | --- |
+| `thock-keyboard-3d.js?v=…` | 14,874 | yes |
+| `thock-keyboard-3d.js` | 12,041 | no — an earlier deploy |
+
+`asset_url` inside the Liquid asset emits absolute, content-versioned URLs, so a
+changed module gets a changed specifier. Keep every import specifier in that
+file going through `asset_url`.
+
+One caveat this does *not* cover: the vendored libraries import each other
+relatively (`three.module.min.js` → `three.core.min.js`, `gltf-loader.js` →
+both utils). If you ever bump three.js, rename those files rather than
+overwriting them, or the CDN will keep serving the old copies.
 
 `three.module.min.js` ships from npm importing `./three.core.js` — the
 *unminified* core. The vendored copy is patched to `./three.core.min.js` so the

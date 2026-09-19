@@ -330,6 +330,12 @@ function adaptModel(THREE, scene) {
   const root = new THREE.Group();
   root.add(scene);
 
+  // Legends are generated, because the source model ships with no textures.
+  // Parented to the scene so they inherit the recentring below and stay
+  // locked to the caps.
+  const legends = createLegends(THREE, scene.userData && scene.userData.legends);
+  if (legends) scene.add(legends);
+
   // The bake centres X/Z and rests the board on y=0; drop it so its middle is
   // on the origin, matching the procedural board's pivot.
   const box = new THREE.Box3().setFromObject(scene);
@@ -379,6 +385,7 @@ function adaptModel(THREE, scene) {
       });
       if (typeof cw.metalness === 'number') caseMat.metalness = cw.metalness;
       if (typeof cw.roughness === 'number') caseMat.roughness = cw.roughness;
+      if (legends) legends.material.color.set(legendColorFor(cw.capBase));
     },
 
     beginColorwayTween() {
@@ -401,6 +408,9 @@ function adaptModel(THREE, scene) {
       if (typeof cw.roughness === 'number') {
         caseMat.roughness = tweenFrom.roughness + (cw.roughness - tweenFrom.roughness) * t;
       }
+      // Snap rather than tween: legend colour only ever flips between light
+      // and dark, and a midpoint crossfade reads as the text washing out.
+      if (legends && t > 0.5) legends.material.color.set(legendColorFor(cw.capBase));
     },
 
     dispose() {
@@ -412,6 +422,134 @@ function adaptModel(THREE, scene) {
       });
     },
   };
+}
+
+/* ==========================================================================
+ * Keycap legends
+ *
+ * The source model has no textures, so the caps are blank. Positions and
+ * labels come from the bake (carried in the glTF scene extras); this turns
+ * them into a single mesh: one canvas atlas, one geometry, one draw call for
+ * all 66 legends.
+ * ========================================================================== */
+
+const LEGEND_CELL = 128;
+
+export function createLegends(THREE, legends) {
+  if (!legends || !legends.length) return null;
+
+  const labels = [];
+  const slot = new Map();
+  legends.forEach((l) => {
+    if (!slot.has(l.label)) {
+      slot.set(l.label, labels.length);
+      labels.push(l.label);
+    }
+  });
+
+  const cols = Math.ceil(Math.sqrt(labels.length));
+  const rows = Math.ceil(labels.length / cols);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = cols * LEGEND_CELL;
+  canvas.height = rows * LEGEND_CELL;
+  const ctx = canvas.getContext('2d');
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+
+  labels.forEach((label, i) => {
+    const cx = (i % cols) * LEGEND_CELL + LEGEND_CELL / 2;
+    const cy = Math.floor(i / cols) * LEGEND_CELL + LEGEND_CELL / 2;
+
+    // Fit the label to the cell. Single characters end up large, words like
+    // "Shift" end up small — which is how real keycaps are printed.
+    let size = label.length > 2 ? 46 : 74;
+    ctx.font = `600 ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+    const maxWidth = LEGEND_CELL * 0.78;
+    const measured = ctx.measureText(label).width;
+    if (measured > maxWidth) {
+      size = Math.max(18, Math.floor((size * maxWidth) / measured));
+      ctx.font = `600 ${size}px ui-sans-serif, system-ui, -apple-system, sans-serif`;
+    }
+    ctx.fillText(label, cx, cy);
+  });
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  texture.flipY = false;
+
+  const positions = [];
+  const uvs = [];
+  const normals = [];
+  const indices = [];
+
+  legends.forEach((l, n) => {
+    const i = slot.get(l.label);
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+
+    // Quads track the cap's own footprint so wide modifiers get wide labels.
+    const hw = Math.min(l.w * 0.44, 0.58);
+    const hd = Math.min(l.d * 0.4, 0.34);
+    const y = l.y + 0.012; // clear of the cap's dished top
+
+    positions.push(
+      l.x - hw, y, l.z - hd,
+      l.x + hw, y, l.z - hd,
+      l.x + hw, y, l.z + hd,
+      l.x - hw, y, l.z + hd
+    );
+
+    // flipY is off, so v runs top-down with the canvas. -Z is away from the
+    // camera, which is the top edge of the glyph.
+    const u0 = col / cols;
+    const u1 = (col + 1) / cols;
+    const v0 = row / rows;
+    const v1 = (row + 1) / rows;
+    uvs.push(u0, v0, u1, v0, u1, v1, u0, v1);
+
+    normals.push(0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0);
+
+    const base = n * 4;
+    indices.push(base, base + 2, base + 1, base, base + 3, base + 2);
+  });
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geometry.setIndex(indices);
+
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    color: 0x1a1d20,
+    transparent: true,
+    roughness: 0.75,
+    metalness: 0,
+    // Legends sit a hair above the cap; offset stops them z-fighting when the
+    // camera is near-parallel to the board.
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.renderOrder = 2;
+  mesh.userData.isLegends = true;
+  return mesh;
+}
+
+/** Legends have to contrast with whatever the caps just became. */
+export function legendColorFor(hex) {
+  const c = String(hex || '#2a2e33').replace('#', '');
+  const r = parseInt(c.slice(0, 2), 16) / 255;
+  const g = parseInt(c.slice(2, 4), 16) / 255;
+  const b = parseInt(c.slice(4, 6), 16) / 255;
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 0.5 ? '#1a1d20' : '#efeae1';
 }
 
 /* ==========================================================================
@@ -509,6 +647,17 @@ function buildStack(THREE, scene) {
         (byMaterial[name] || []).forEach((mesh) => group.attach(mesh));
       });
       if (!group.children.length) return;
+
+      // Legends belong to the keycaps, so they have to travel with that layer
+      // rather than staying behind on the case.
+      if (spec.key === 'keycaps') {
+        const legends = createLegends(THREE, scene.userData && scene.userData.legends);
+        if (legends) {
+          legends.position.y -= center.y;
+          group.add(legends);
+        }
+      }
+
       root.add(group);
     }
 

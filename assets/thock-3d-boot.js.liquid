@@ -1,0 +1,29 @@
+{%- comment -%}
+  THOCK — 3D bundle entry point. Rendered through Liquid on purpose.
+
+  Two Shopify constraints shape this file:
+
+  1. Shopify's CDN rewrites dynamic `import(...)` into `require(...)` when it
+     minifies theme JS — in classic scripts AND in ES modules — and `require`
+     doesn't exist in a browser. Static imports are left alone, so every import
+     here has to be static.
+
+  2. A relative specifier like './thock-keyboard-3d.js' resolves to the
+     UNVERSIONED asset path, which the CDN serves from a long-lived cache. Edits
+     to an imported module then never reach visitors: measured on this store,
+     the versioned URL returned 14,874 bytes of current code while the
+     unversioned one returned a 12,041-byte copy from an earlier deploy.
+
+  Rendering through Liquid solves the second one — `asset_url` emits absolute,
+  content-versioned URLs, so a changed module gets a changed specifier.
+
+  Lazy loading still holds: THOCK.load3D() injects this as a
+  <script type="module"> only when a 3D section nears the viewport.
+{%- endcomment -%}
+import * as THREE from '{{ 'three.module.min.js' | asset_url }}';
+import * as KB from '{{ 'thock-keyboard-3d.js' | asset_url }}';
+import { GLTFLoader } from '{{ 'gltf-loader.js' | asset_url }}';
+
+window.THOCK3D = { THREE: THREE, KB: KB, GLTFLoader: GLTFLoader };
+
+document.dispatchEvent(new CustomEvent('thock:3d-ready'));
