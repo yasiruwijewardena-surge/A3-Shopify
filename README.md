@@ -90,10 +90,22 @@ connected components, classifies each one, and writes a new `.glb` with four
 primitives and materials named `case`, `cap_base`, `cap_mod` and `cap_accent` —
 matching the section's colorway block settings one-for-one.
 
-The classification hinges on one observation: keycaps and switch stems overlap
-almost completely in footprint width, so size can't separate them, but they
-differ tenfold in triangle count. Filtering at 150 triangles isolates exactly 68
-keycaps — a 65% layout — and their widths then cluster cleanly at 1u.
+Three things had to be right for the classification to work, and each was found
+by measuring rather than assuming:
+
+1. **Triangle count separates keycaps from switch stems.** They overlap almost
+   completely in footprint, so size can't tell them apart — but they differ
+   tenfold in density. Filtering at 150 triangles isolates the caps.
+2. **Depth, not width, separates a keycap from the top panel.** Every cap is one
+   key deep however wide it is, so a 6.4u spacebar and a 1u Escape look the same
+   on that axis, while the panel spans the whole board. An earlier width-based
+   filter put the spacebar in the case group, where it rendered as bronze trim.
+3. **The source has ~3.8 degrees of residual yaw**, because the node quaternion
+   is ~185 degrees rather than 180. Invisible at a glance, but it drags z by 1.2
+   units across a 15-key row — more than the 0.9 row pitch — so rows genuinely
+   interleave and no threshold can separate them. The bake removes it via the
+   first principal axis of the vertex cloud, which collapses in-row z spread
+   from 0.87 to 0.32 and makes rows resolve cleanly as 15/15/14/14/9.
 
 To re-run it after swapping the source model:
 

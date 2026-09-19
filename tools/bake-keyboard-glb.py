@@ -103,6 +103,36 @@ def apply_matrix(m, v):
             m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2])
 
 
+def residual_yaw(positions):
+    """Angle the board is rotated by in the XZ plane.
+
+    The source node's quaternion is ~185 degrees of yaw, not 180, so baking it
+    leaves about 5 degrees of skew. That's invisible at a glance but fatal to
+    row detection: over a 15-key row it drags z by 1.2 units, more than the 0.9
+    row pitch, so rows genuinely interleave and no threshold can separate them.
+
+    A keyboard is much wider than it is deep, so the first principal axis of
+    the vertex cloud is the row direction. The angle of that axis is the skew.
+    """
+    n = len(positions)
+    mx = sum(p[0] for p in positions) / n
+    mz = sum(p[2] for p in positions) / n
+
+    sxx = szz = sxz = 0.0
+    for p in positions:
+        dx, dz = p[0] - mx, p[2] - mz
+        sxx += dx * dx
+        szz += dz * dz
+        sxz += dx * dz
+
+    return 0.5 * math.atan2(2 * sxz, sxx - szz)
+
+
+def rotate_y(vectors, angle):
+    c, s = math.cos(angle), math.sin(angle)
+    return [(v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c) for v in vectors]
+
+
 # ----------------------------------------------------------------------------
 # Connected components
 # ----------------------------------------------------------------------------
@@ -173,17 +203,25 @@ def classify(components, report=False):
     y_hi = max(c['ymax'] for c in components)
     board_w = max(c['xmax'] for c in components) - min(c['xmin'] for c in components)
 
+    board_d = max(c['zmax'] for c in components) - min(c['zmin'] for c in components)
     cap_height = y_lo + (y_hi - y_lo) * 0.55
-    max_cap_span = board_w * 0.2
 
-    # Triangle count is what separates a moulded keycap from a switch stem.
-    # Footprint alone doesn't: stems and caps overlap heavily in width, which
-    # is what made the median footprint a useless estimate of 1u.
+    # Depth, not width, is what tells a keycap from the top panel. Every cap is
+    # one key deep no matter how wide it is, so a spacebar (6.4u wide, 1.5u
+    # deep) and an Escape key look identical on this axis — while the full-board
+    # panel spans the whole depth. Filtering on width instead put the spacebar
+    # in the case group, where it rendered as bronze trim rather than a keycap.
+    max_cap_depth = board_d * 0.35
+    max_cap_width = board_w * 0.5
+
+    # Triangle count separates a moulded keycap from a switch stem. Footprint
+    # can't: stems and caps overlap heavily in width, which is what made the
+    # median footprint a useless estimate of 1u.
     caps, case = [], []
     for c in components:
         is_high = c['ymax'] > cap_height
-        is_compact = c['w'] < max_cap_span and c['d'] < max_cap_span
-        if is_high and is_compact and len(c['tris']) >= MIN_KEYCAP_TRIS:
+        is_cap_shaped = c['d'] < max_cap_depth and c['w'] < max_cap_width
+        if is_high and is_cap_shaped and len(c['tris']) >= MIN_KEYCAP_TRIS:
             caps.append(c)
         else:
             # Switch housings and stems go with the case; they read as dark
@@ -197,29 +235,42 @@ def classify(components, report=False):
                     [c for c in caps if c['w'] <= unit * 0.5])
     case.extend(strays)
 
+    # Locating Escape without clustering rows at all.
+    #
+    # Row sculpt tilts caps fore and aft, so cz is continuous across rows: gap
+    # clustering chains all five rows into one, and rounding cz to a grid tears
+    # single rows in two. Both failed. But Escape only needs two facts, and
+    # both come straight from extremes:
+    #
+    #   1. The spacebar is the widest cap, and it marks the FRONT edge.
+    #      The number row is therefore at the opposite z extreme.
+    #   2. Within that row, Backspace is the widest cap and sits at the right.
+    #      Escape is the cap furthest from it along x.
+    #
+    # Both are orientation-independent, so this survives the source model's
+    # ~185 degree yaw without hardcoding a direction.
+    # With the yaw removed, rows bin cleanly: in-row z spread is 0.32 against a
+    # 0.9 pitch. Anchoring on the extreme z instead fails, because a couple of
+    # stray components sit past the real back row and capture the band alone.
     rows = defaultdict(list)
     for c in caps:
         rows[round(c['cz'] / unit)].append(c)
-    row_keys = sorted(rows)
 
-    # The bottom row (spacebar) has the fewest keys. The number row is the row
-    # furthest from it. Orientation-independent, so it survives the source
-    # model's ~185 degree yaw without hardcoding a direction.
-    populated = [r for r in row_keys if len(rows[r]) >= 8]
-    if populated:
-        bottom = min(populated, key=lambda r: len(rows[r]))
-        number_row = max(populated, key=lambda r: abs(r - bottom))
-    else:
-        number_row = row_keys[0] if row_keys else None
+    populated = sorted(r for r in rows if len(rows[r]) >= 8)
 
     accent = None
-    if number_row is not None and len(rows[number_row]) >= 8:
-        row = sorted(rows[number_row], key=lambda c: c['cx'])
-        # Backspace (the widest cap in the number row) marks the right-hand end.
-        # Esc is the outermost cap at the opposite end.
-        widest = max(row, key=lambda c: c['w'])
-        right_end = abs(widest['cx'] - row[-1]['cx']) < abs(widest['cx'] - row[0]['cx'])
-        accent = row[0] if right_end else row[-1]
+    number_row = []
+    if populated:
+        # The bottom row is the sparsest populated row — it's mostly modifiers
+        # and a spacebar. The number row is the one furthest from it.
+        bottom = min(populated, key=lambda r: len(rows[r]))
+        number_row = rows[max(populated, key=lambda r: abs(r - bottom))]
+
+        # Backspace is the widest cap in the number row and sits at one end.
+        # Escape is the cap furthest from it. Direction-agnostic, so a mirrored
+        # or yawed source doesn't need a hardcoded left/right.
+        widest = max(number_row, key=lambda c: c['w'])
+        accent = max(number_row, key=lambda c: abs(c['cx'] - widest['cx']))
 
     alpha, modifier = [], []
     for c in caps:
@@ -231,8 +282,8 @@ def classify(components, report=False):
         print(f'  board width      : {board_w:.2f}')
         print(f'  estimated 1u     : {unit:.3f}')
         print(f'  keycaps found    : {len(caps)}')
-        print(f'  rows (z/unit)    : { {r: len(rows[r]) for r in row_keys} }')
-        print(f'  number row       : {number_row}')
+        print(f'  rows (populated) : {[len(rows[r]) for r in populated]}')
+        print(f'  number row keys  : {len(number_row)}')
         acc = f"x={accent['cx']:.2f} z={accent['cz']:.2f}" if accent else 'NOT FOUND'
         print(f'  accent (Esc) at  : {acc}')
         print(f'  alpha caps       : {len(alpha)}')
@@ -409,6 +460,13 @@ def main():
         m = quat_to_matrix(node['rotation'])
         positions = [apply_matrix(m, p) for p in positions]
         normals = [apply_matrix(m, n) for n in normals]
+
+    # Square the board up. Leaves rows axis-aligned, which both makes row
+    # detection tractable and stops the hero rendering a subtly crooked board.
+    yaw = residual_yaw(positions)
+    print(f'  residual yaw     : {math.degrees(yaw):+.2f} deg (corrected)')
+    positions = rotate_y(positions, yaw)
+    normals = rotate_y(normals, yaw)
 
     # Centre on the origin and scale to the target width. Node translation and
     # scale are discarded — they're superseded by this normalisation.
