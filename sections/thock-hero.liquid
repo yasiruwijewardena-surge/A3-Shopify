@@ -13,10 +13,8 @@
   class="thock thock-hero"
   data-thock-hero
   data-section-id="{{ section.id }}"
-  data-three-url="{{ 'three.module.min.js' | asset_url }}"
-  data-keyboard-url="{{ 'thock-keyboard-3d.js' | asset_url }}"
+  data-boot-url="{{ 'thock-3d-boot.js' | asset_url }}"
   {%- if section.settings.use_model %}
-    data-gltf-loader-url="{{ 'gltf-loader.js' | asset_url }}"
     data-model-url="{{ 'thock-keyboard.glb' | asset_url }}"
   {%- endif %}
   data-quality="{{ section.settings.quality }}"

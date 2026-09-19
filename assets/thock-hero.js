@@ -252,31 +252,18 @@
   }
 
   function boot(root, canvas, fallback, data, commerce) {
-    var threeUrl = root.dataset.threeUrl;
-    var kbUrl = root.dataset.keyboardUrl;
-    var loaderUrl = root.dataset.gltfLoaderUrl;
     var modelUrl = root.dataset.modelUrl;
 
-    Promise.all([import(threeUrl), import(kbUrl)])
-      .then(function (mods) {
-        var THREE = mods[0];
-        var KB = mods[1];
+    M.load3D(root.dataset.bootUrl)
+      .then(function (bundle) {
+        var THREE = bundle.THREE;
+        var KB = bundle.KB;
 
-        // No model configured — go straight to the procedural board rather
-        // than paying for a loader we won't use.
-        if (!modelUrl || !loaderUrl) return { THREE: THREE, KB: KB, board: null };
+        if (!modelUrl) return { THREE: THREE, KB: KB, board: null };
 
-        return import(loaderUrl)
-          .then(function (loaderMod) {
-            return KB.loadKeyboardModel(THREE, loaderMod.GLTFLoader, modelUrl);
-          })
-          .catch(function (err) {
-            console.warn('[THOCK] GLTFLoader unavailable', err);
-            return null;
-          })
-          .then(function (board) {
-            return { THREE: THREE, KB: KB, board: board };
-          });
+        return KB.loadKeyboardModel(THREE, bundle.GLTFLoader, modelUrl).then(function (board) {
+          return { THREE: THREE, KB: KB, board: board };
+        });
       })
       .then(function (ctx) {
         var board = ctx.board;
@@ -552,3 +539,4 @@
     initAll(event.target);
   });
 })();
+

@@ -73,20 +73,16 @@
   }
 
   function boot(root, canvas, items) {
-    Promise.all([
-      import(root.dataset.threeUrl),
-      import(root.dataset.keyboardUrl),
-      import(root.dataset.gltfLoaderUrl),
-    ])
-      .then(function (mods) {
-        var THREE = mods[0];
-        var KB = mods[1];
-        return KB.loadExplodedStack(THREE, mods[2].GLTFLoader, root.dataset.modelUrl).then(
-          function (stack) {
-            if (!stack) throw new Error('stack unavailable');
-            run(THREE, KB, stack, root, canvas, items);
-          }
-        );
+    M.load3D(root.dataset.bootUrl)
+      .then(function (bundle) {
+        return bundle.KB.loadExplodedStack(
+          bundle.THREE,
+          bundle.GLTFLoader,
+          root.dataset.modelUrl
+        ).then(function (stack) {
+          if (!stack) throw new Error('stack unavailable');
+          run(bundle.THREE, bundle.KB, stack, root, canvas, items);
+        });
       })
       .catch(function (err) {
         console.warn('[THOCK] exploded view unavailable, falling back to the list', err);
@@ -262,3 +258,4 @@
     initAll(event.target);
   });
 })();
+

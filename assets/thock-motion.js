@@ -134,9 +134,50 @@
     return lerp(current, target, 1 - Math.pow(smoothing, dt));
   }
 
+  /* ----------------------------------------------------------------------
+   * Lazy 3D bundle loader
+   *
+   * Shopify's CDN rewrites dynamic import() to require() when minifying theme
+   * JS, which throws ReferenceError on the published theme while working fine
+   * under `shopify theme dev` (which serves raw files). Static imports survive,
+   * so the imports live in thock-3d-boot.js and we lazy-load it by injecting a
+   * module script instead — same deferral, no dynamic import.
+   *
+   * Shared by every 3D section so three.js is fetched, parsed and instantiated
+   * exactly once no matter how many sections want it.
+   * -------------------------------------------------------------------- */
+
+  var boot3D = null;
+
+  function load3D(url) {
+    if (window.THOCK3D) return Promise.resolve(window.THOCK3D);
+    if (boot3D) return boot3D;
+
+    boot3D = new Promise(function (resolve, reject) {
+      document.addEventListener(
+        'thock:3d-ready',
+        function () {
+          resolve(window.THOCK3D);
+        },
+        { once: true }
+      );
+
+      var script = document.createElement('script');
+      script.type = 'module';
+      script.src = url;
+      script.onerror = function () {
+        reject(new Error('failed to load the 3D bundle: ' + url));
+      };
+      document.head.appendChild(script);
+    });
+
+    return boot3D;
+  }
+
   window.THOCK = {
     initReveals: initReveals,
     trackProgress: trackProgress,
+    load3D: load3D,
     clamp: clamp,
     lerp: lerp,
     smoothstep: smoothstep,

@@ -73,6 +73,22 @@ to swatches, so they must match.
 | `tools/bake-keyboard-glb.py` | Offline splitter that produced the .glb (not shipped to the store) |
 | `assets/three.module.min.js` | three.js 0.186.0, vendored, plus GLTFLoader and its two utils |
 
+### Shopify rewrites dynamic `import()`
+
+Shopify minifies theme JavaScript on its CDN and rewrites dynamic
+`import(...)` into `require(...)` — which does not exist in a browser. It does
+this in classic scripts **and** in ES modules, so adding `export {}` does not
+help. Static `import` statements are left alone.
+
+This only affects the published theme: `shopify theme dev` serves raw files, so
+lazy-loaded 3D worked perfectly in local development and threw
+`ReferenceError: require is not defined` the moment it was pushed.
+
+The fix is `assets/thock-3d-boot.js`: a module that does all the imports
+*statically*, which is then lazy-loaded by injecting a `<script type="module">`
+tag (`THOCK.load3D()` in `thock-motion.js`). Same deferral, no dynamic import.
+Do not reintroduce `import()` in any theme asset.
+
 `three.module.min.js` ships from npm importing `./three.core.js` — the
 *unminified* core. The vendored copy is patched to `./three.core.min.js` so the
 relative resolve against Shopify's asset CDN picks up the minified build. Redo
