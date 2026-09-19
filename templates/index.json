@@ -159,10 +159,76 @@
         "show_hint": true,
         "hint": "Keep scrolling"
       }
+    },
+    "switches": {
+      "type": "thock-switches",
+      "blocks": {
+        "sw_linear": {
+          "type": "switch",
+          "settings": {
+            "title": "Nocturne Linear 45g",
+            "short_label": "Linear",
+            "profile": "linear",
+            "description": "No bump, no click. Resistance builds evenly from the top of the stroke to the bottom, which is why it reads as fast rather than precise.",
+            "actuation_force": 45,
+            "bottom_out_force": 60,
+            "peak_force": 45,
+            "pre_travel": 2.0,
+            "total_travel": 3.4,
+            "accent": "#ff5a1f",
+            "product": "thock-switches-nocturne-linear"
+          }
+        },
+        "sw_tactile": {
+          "type": "switch",
+          "settings": {
+            "title": "Copper Tactile 55g",
+            "short_label": "Tactile",
+            "profile": "tactile",
+            "description": "A rounded bump right at the top of the stroke, then a clean drop away. You feel the actuation without announcing it to the room.",
+            "actuation_force": 55,
+            "bottom_out_force": 67,
+            "peak_force": 62,
+            "pre_travel": 1.9,
+            "total_travel": 3.4,
+            "accent": "#d98c3a",
+            "product": "thock-switches-copper-tactile"
+          }
+        },
+        "sw_clicky": {
+          "type": "switch",
+          "settings": {
+            "title": "Sky Clicky 60g",
+            "short_label": "Clicky",
+            "profile": "clicky",
+            "description": "A click bar, not a click jacket \u2014 the collapse is sharper and it resets with the same sound it fires with. Unapologetically loud.",
+            "actuation_force": 60,
+            "bottom_out_force": 70,
+            "peak_force": 75,
+            "pre_travel": 1.8,
+            "total_travel": 3.4,
+            "accent": "#5aa9e6",
+            "product": "thock-switches-sky-clicky"
+          }
+        }
+      },
+      "block_order": [
+        "sw_linear",
+        "sw_tactile",
+        "sw_clicky"
+      ],
+      "settings": {
+        "eyebrow": "Switch lab",
+        "heading": "Three ways down",
+        "lead": "Every switch is a different shape of resistance. Here is what each one actually does between the top of the keycap and the bottom of the stroke.",
+        "picker_label": "Compare",
+        "caption": "Force required through the stroke. The marker is the actuation point \u2014 where the keypress registers."
+      }
     }
   },
   "order": [
     "hero",
-    "exploded"
+    "exploded",
+    "switches"
   ]
 }

@@ -1,0 +1,240 @@
+{{ 'thock-switches.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'thock-switches.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign switch_blocks = section.blocks | where: 'type', 'switch'
+-%}
+
+<section class="thock thock-switches thock__section" data-thock-switches>
+  {%- if switch_blocks.size == 0 -%}
+    <div class="thock__shell">
+      <p class="thock__eyebrow">Switch lab</p>
+      <h2 class="thock__title">Add a switch to compare</h2>
+      <p class="thock__lead">Each switch block draws its own force curve from the numbers you enter.</p>
+    </div>
+  {%- else -%}
+    {%- capture switch_json -%}
+      [
+      {%- for block in switch_blocks -%}
+        {%- assign p = block.settings.product -%}
+        {
+          "id": {{ block.id | json }},
+          "title": {{ block.settings.title | json }},
+          "label": {{ block.settings.short_label | json }},
+          "profile": {{ block.settings.profile | json }},
+          "description": {{ block.settings.description | json }},
+          "actuation": {{ block.settings.actuation_force }},
+          "bottomOut": {{ block.settings.bottom_out_force }},
+          "peak": {{ block.settings.peak_force }},
+          "preTravel": {{ block.settings.pre_travel }},
+          "totalTravel": {{ block.settings.total_travel }},
+          "accent": {{ block.settings.accent | default: '#ff5a1f' | json }},
+          "url": {%- if p != blank -%}{{ p.url | json }}{%- else -%}null{%- endif -%},
+          "price": {%- if p != blank -%}{{ p.price | money | json }}{%- else -%}null{%- endif -%}
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+      ]
+    {%- endcapture -%}
+
+    <script type="application/json" data-thock-switches-data>
+      { "switches": {{ switch_json | strip_newlines | strip }} }
+    </script>
+
+    <div class="thock__shell">
+      <div class="thock-switches__head">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="thock__eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        <h2 class="thock__display" data-reveal>{{ section.settings.heading | escape }}</h2>
+        {%- if section.settings.lead != blank -%}
+          <p class="thock__lead" data-reveal>{{ section.settings.lead | escape }}</p>
+        {%- endif -%}
+      </div>
+
+      <div class="thock-switches__grid">
+        <div class="thock-switches__controls">
+          {%- comment -%}
+            A radio group, so arrow keys move between switches and the choice
+            is announced. Each switch's panel is described below it.
+          {%- endcomment -%}
+          <fieldset class="thock-switches__picker">
+            <legend class="thock__fine thock-switches__picker-legend">
+              {{ section.settings.picker_label | escape }}
+            </legend>
+            <div class="thock-switches__options">
+              {%- for block in switch_blocks -%}
+                <label class="thock-switches__option" for="thock-sw-{{ section.id }}-{{ forloop.index }}">
+                  <input
+                    type="radio"
+                    id="thock-sw-{{ section.id }}-{{ forloop.index }}"
+                    name="thock-switch-{{ section.id }}"
+                    value="{{ block.id }}"
+                    data-switch-index="{{ forloop.index0 }}"
+                    {% if forloop.first %}checked{% endif %}
+                  >
+                  <span class="thock-switches__option-face">
+                    <span class="thock-switches__option-label">{{ block.settings.short_label | escape }}</span>
+                    <span class="thock-switches__option-weight thock__numeric">
+                      {{- block.settings.actuation_force }}g
+                    </span>
+                  </span>
+                </label>
+              {%- endfor -%}
+            </div>
+          </fieldset>
+
+          <div class="thock-switches__detail" data-thock-switch-detail>
+            <h3 class="thock__title thock-switches__name" data-thock-switch-title>
+              {{- switch_blocks.first.settings.title | escape -}}
+            </h3>
+            <p class="thock-switches__desc" data-thock-switch-desc>
+              {{- switch_blocks.first.settings.description | escape -}}
+            </p>
+
+            {%- comment -%}
+              A description list, not a grid of divs — these are genuinely
+              term/value pairs and screen readers announce them as such.
+            {%- endcomment -%}
+            <dl class="thock-switches__specs" data-thock-switch-specs>
+              <div class="thock-switches__spec">
+                <dt class="thock__fine">Actuation</dt>
+                <dd class="thock__numeric" data-spec="actuation">—</dd>
+              </div>
+              <div class="thock-switches__spec">
+                <dt class="thock__fine">Bottom-out</dt>
+                <dd class="thock__numeric" data-spec="bottomOut">—</dd>
+              </div>
+              <div class="thock-switches__spec">
+                <dt class="thock__fine">Pre-travel</dt>
+                <dd class="thock__numeric" data-spec="preTravel">—</dd>
+              </div>
+              <div class="thock-switches__spec">
+                <dt class="thock__fine">Total travel</dt>
+                <dd class="thock__numeric" data-spec="totalTravel">—</dd>
+              </div>
+            </dl>
+
+            <a class="thock__btn thock__btn--ghost thock-switches__cta" data-thock-switch-cta href="#" hidden>
+              <span data-thock-switch-cta-label>Shop switches</span>
+            </a>
+          </div>
+        </div>
+
+        <figure class="thock-switches__chart">
+          {%- comment -%}
+            The chart carries a text alternative that is regenerated per switch,
+            so it is never an unlabelled decorative graphic.
+          {%- endcomment -%}
+          <svg
+            class="thock-switches__svg"
+            viewBox="0 0 520 360"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            data-thock-switch-svg
+            aria-labelledby="thock-chart-title-{{ section.id }} thock-chart-desc-{{ section.id }}"
+          >
+            <title id="thock-chart-title-{{ section.id }}">Force versus travel</title>
+            <desc id="thock-chart-desc-{{ section.id }}" data-thock-chart-desc></desc>
+
+            <g class="thock-switches__grid-lines" data-thock-chart-grid aria-hidden="true"></g>
+            <g class="thock-switches__grid-lines" data-thock-travel-ticks aria-hidden="true"></g>
+
+            <path class="thock-switches__curve-fill" data-thock-curve-fill d="" />
+            <path class="thock-switches__curve" data-thock-curve d="" />
+
+            <g class="thock-switches__markers" aria-hidden="true">
+              <line class="thock-switches__marker-line" data-thock-actuation-line />
+              <circle class="thock-switches__marker-dot" data-thock-actuation-dot r="5" />
+              <text class="thock-switches__marker-text" data-thock-actuation-text></text>
+            </g>
+
+            <circle class="thock-switches__travel-dot" data-thock-travel-dot r="7" aria-hidden="true" />
+
+            <g class="thock-switches__axes" aria-hidden="true">
+              <text class="thock-switches__axis-label" x="260" y="352" text-anchor="middle">Travel (mm)</text>
+              <text class="thock-switches__axis-label" transform="translate(14 180) rotate(-90)" text-anchor="middle">Force (g)</text>
+            </g>
+          </svg>
+
+          <figcaption class="thock__fine thock-switches__caption">
+            {{ section.settings.caption | escape }}
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "THOCK · Switch lab",
+  "tag": "section",
+  "class": "thock-switches-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Switch lab" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Three ways down" },
+    {
+      "type": "textarea",
+      "id": "lead",
+      "label": "Lead",
+      "default": "Every switch is a different shape of resistance. Here is what each one actually does between the top of the keycap and the bottom of the stroke."
+    },
+    { "type": "text", "id": "picker_label", "label": "Picker label", "default": "Compare" },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "Chart caption",
+      "default": "Force required through the stroke. The marker is the actuation point — where the keypress registers."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "switch",
+      "name": "Switch",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Name", "default": "Nocturne Linear 45g" },
+        { "type": "text", "id": "short_label", "label": "Short label", "default": "Linear" },
+        {
+          "type": "select",
+          "id": "profile",
+          "label": "Curve shape",
+          "options": [
+            { "value": "linear", "label": "Linear — smooth all the way down" },
+            { "value": "tactile", "label": "Tactile — rounded bump" },
+            { "value": "clicky", "label": "Clicky — sharp bump and click" }
+          ],
+          "default": "linear"
+        },
+        { "type": "textarea", "id": "description", "label": "Description" },
+        { "type": "range", "id": "actuation_force", "label": "Actuation force", "min": 20, "max": 90, "step": 1, "unit": "g", "default": 45 },
+        { "type": "range", "id": "bottom_out_force", "label": "Bottom-out force", "min": 30, "max": 120, "step": 1, "unit": "g", "default": 60 },
+        {
+          "type": "range",
+          "id": "peak_force",
+          "label": "Bump peak force",
+          "min": 30,
+          "max": 120,
+          "step": 1,
+          "unit": "g",
+          "default": 55,
+          "info": "Ignored for linear switches."
+        },
+        { "type": "range", "id": "pre_travel", "label": "Pre-travel", "min": 0.5, "max": 3, "step": 0.1, "unit": "mm", "default": 2 },
+        { "type": "range", "id": "total_travel", "label": "Total travel", "min": 2, "max": 5, "step": 0.1, "unit": "mm", "default": 3.4 },
+        { "type": "color", "id": "accent", "label": "Curve colour", "default": "#ff5a1f" },
+        { "type": "product", "id": "product", "label": "Product", "info": "Adds a shop link and live price to this switch." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "THOCK · Switch lab",
+      "blocks": [
+        { "type": "switch", "settings": { "title": "Nocturne Linear 45g", "short_label": "Linear", "profile": "linear", "actuation_force": 45, "bottom_out_force": 60, "peak_force": 45, "pre_travel": 2, "total_travel": 3.4, "accent": "#ff5a1f", "description": "No bump, no click. Resistance builds evenly from the top of the stroke to the bottom, which is why it reads as fast rather than precise." } },
+        { "type": "switch", "settings": { "title": "Copper Tactile 55g", "short_label": "Tactile", "profile": "tactile", "actuation_force": 55, "bottom_out_force": 67, "peak_force": 62, "pre_travel": 1.9, "total_travel": 3.4, "accent": "#d98c3a", "description": "A rounded bump right at the top of the stroke, then a clean drop away. You feel the actuation without announcing it to the room." } },
+        { "type": "switch", "settings": { "title": "Sky Clicky 60g", "short_label": "Clicky", "profile": "clicky", "actuation_force": 60, "bottom_out_force": 70, "peak_force": 75, "pre_travel": 1.8, "total_travel": 3.4, "accent": "#5aa9e6", "description": "A click bar, not a click jacket — the collapse is sharper and it resets with the same sound it fires with. Unapologetically loud." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

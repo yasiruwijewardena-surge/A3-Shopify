@@ -1,0 +1,276 @@
+/* ==========================================================================
+   THOCK — switch comparison lab
+   Sizes are on Dawn's 10px rem basis (see thock-base.css).
+   ========================================================================== */
+
+.thock-switches {
+  --switch-accent: var(--t-ember);
+  border-top: 1px solid var(--t-line-soft);
+}
+
+.thock-switches__head {
+  max-width: 62ch;
+  margin-bottom: clamp(3rem, 6vw, 6rem);
+}
+
+.thock-switches__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(2.5rem, 5vw, 6rem);
+  align-items: start;
+}
+
+/* --------------------------------------------------------------------------
+   Picker
+   -------------------------------------------------------------------------- */
+
+.thock-switches__picker {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.thock-switches__picker-legend {
+  padding: 0;
+  margin-bottom: 1.2rem;
+}
+
+.thock-switches__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.8rem;
+}
+
+.thock-switches__option {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.thock-switches__option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.thock-switches__option-face {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--t-line);
+  border-radius: 2px;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.thock-switches__option:hover .thock-switches__option-face {
+  border-color: var(--t-faint);
+}
+
+.thock-switches__option input:checked + .thock-switches__option-face {
+  border-color: var(--switch-accent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.thock-switches__option input:focus-visible + .thock-switches__option-face {
+  outline: 2px solid var(--t-ember);
+  outline-offset: 3px;
+}
+
+.thock-switches__option-label {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.thock-switches__option-weight {
+  font-family: var(--t-mono);
+  font-size: var(--fs-fine);
+  color: var(--t-faint);
+}
+
+.thock-switches__option input:checked + .thock-switches__option-face .thock-switches__option-weight {
+  color: var(--switch-accent);
+}
+
+/* --------------------------------------------------------------------------
+   Detail
+   -------------------------------------------------------------------------- */
+
+.thock-switches__detail {
+  margin-top: clamp(2rem, 3vw, 3rem);
+}
+
+.thock-switches__name {
+  font-size: clamp(2rem, 2.4vw, 2.6rem);
+}
+
+.thock-switches__desc {
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--t-mute);
+  margin: 1.2rem 0 0;
+  max-width: 46ch;
+  /* Descriptions differ in length; reserve space so swapping switches doesn't
+     shunt the specs and CTA up and down the page. */
+  min-height: 7.5rem;
+}
+
+.thock-switches__specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.6rem 2.4rem;
+  margin: 2.4rem 0 0;
+  padding: 2rem 0 0;
+  border-top: 1px solid var(--t-line-soft);
+}
+
+.thock-switches__spec dt {
+  margin: 0 0 0.4rem;
+}
+
+.thock-switches__spec dd {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.thock-switches__cta {
+  margin-top: 2.4rem;
+}
+
+.thock-switches__cta[hidden] {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Chart
+   -------------------------------------------------------------------------- */
+
+.thock-switches__chart {
+  margin: 0;
+  background: var(--t-ink);
+  border: 1px solid var(--t-line-soft);
+  border-radius: 3px;
+  padding: clamp(1.2rem, 2vw, 2rem);
+}
+
+.thock-switches__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.thock-switches__grid-lines line {
+  stroke: var(--t-line-soft);
+  stroke-width: 1;
+}
+
+.thock-switches__tick {
+  fill: var(--t-faint);
+  font-family: var(--t-mono);
+  font-size: 11px;
+}
+
+.thock-switches__axis-label {
+  fill: var(--t-faint);
+  font-family: var(--t-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.thock-switches__curve {
+  fill: none;
+  stroke: var(--switch-accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition: stroke var(--dur-base) var(--ease-out);
+}
+
+.thock-switches__curve-fill {
+  fill: var(--switch-accent);
+  opacity: 0.1;
+  stroke: none;
+  transition: fill var(--dur-base) var(--ease-out);
+}
+
+.thock-switches__marker-line {
+  stroke: var(--t-bone);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.45;
+}
+
+.thock-switches__marker-dot {
+  fill: var(--t-bone);
+}
+
+.thock-switches__marker-text {
+  fill: var(--t-bone);
+  font-family: var(--t-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.thock-switches__travel-dot {
+  fill: var(--switch-accent);
+  stroke: var(--t-void);
+  stroke-width: 2;
+}
+
+.thock-switches__caption {
+  margin: 1.6rem 0 0;
+  line-height: 1.5;
+  max-width: 52ch;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 989px) {
+  .thock-switches__grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Chart above the detail on narrow screens: the picker changes it, so it
+     should be visible when you tap. */
+  .thock-switches__chart {
+    order: -1;
+  }
+
+  .thock-switches__desc {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 749px) {
+  .thock-switches__specs {
+    gap: 1.4rem 1.6rem;
+  }
+
+  .thock-switches__spec dd {
+    font-size: 1.8rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — curves still redraw on selection, they just don't tween,
+   and the travelling dot is hidden entirely (handled in JS).
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .thock-switches__curve,
+  .thock-switches__curve-fill {
+    transition: none;
+  }
+}
