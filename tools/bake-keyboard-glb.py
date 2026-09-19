@@ -133,6 +133,33 @@ def rotate_y(vectors, angle):
     return [(v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c) for v in vectors]
 
 
+def spacebar_is_at_back(positions, triangles):
+    """True when the board faces away from the camera.
+
+    Found by locating the spacebar: it's the widest keycap on any layout, and
+    it always sits on the row nearest the typist. The camera looks down -z, so
+    a spacebar at negative z means we're looking at the back of the board.
+    """
+    components = [component_bounds(positions, triangles, t)
+                  for t in connected_components(positions, triangles)]
+
+    y_lo = min(c['ymin'] for c in components)
+    y_hi = max(c['ymax'] for c in components)
+    board_d = max(c['zmax'] for c in components) - min(c['zmin'] for c in components)
+    board_w = max(c['xmax'] for c in components) - min(c['xmin'] for c in components)
+
+    caps = [c for c in components
+            if c['ymax'] > y_lo + (y_hi - y_lo) * 0.55
+            and c['d'] < board_d * 0.35
+            and c['w'] < board_w * 0.5
+            and len(c['tris']) >= MIN_KEYCAP_TRIS]
+    if not caps:
+        return False
+
+    spacebar = max(caps, key=lambda c: c['w'])
+    return spacebar['cz'] < 0
+
+
 # ----------------------------------------------------------------------------
 # Connected components
 # ----------------------------------------------------------------------------
@@ -467,6 +494,17 @@ def main():
     print(f'  residual yaw     : {math.degrees(yaw):+.2f} deg (corrected)')
     positions = rotate_y(positions, yaw)
     normals = rotate_y(normals, yaw)
+
+    # PCA fixes the skew but can't tell front from back — it returns an axis,
+    # not a direction. The source's ~185 degree yaw leaves the board facing
+    # away, so it renders as if viewed from behind: spacebar at the far edge,
+    # Escape in the far corner. Correct, and unmistakably wrong to anyone who
+    # knows keyboards. The spacebar is the deepest row, so if it sits away from
+    # the camera (-z), the board needs turning around.
+    if spacebar_is_at_back(positions, triangles):
+        print('  orientation      : facing away, rotated 180 deg')
+        positions = rotate_y(positions, math.pi)
+        normals = rotate_y(normals, math.pi)
 
     # Centre on the origin and scale to the target width. Node translation and
     # scale are discarded — they're superseded by this normalisation.
